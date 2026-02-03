@@ -1,0 +1,106 @@
+HOME_REAL:      /rwthfs/rz/cluster/home/kq336027
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+Job started on: n23m0027.hpc.itc.rwth-aachen.de
+Project dir:    /rwthfs/rz/cluster/home/kq336027/cf4dt
+CPUs per task:  16
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+
+=== Sanity check: Python + MPI vendor ===
+Python OK
+MPI vendor: ('MPICH', (4, 3, 2))
+MPI library: MPICH Version:      4.3.2
+COMM_WORLD size: 1
+
+=== Step 1: Generating artificial data -> data/artificial_Qlc_data.csv ===
+Computed 10 / 128 points
+Computed 20 / 128 points
+Computed 30 / 128 points
+Computed 40 / 128 points
+Computed 50 / 128 points
+Computed 60 / 128 points
+Computed 70 / 128 points
+Computed 80 / 128 points
+Computed 90 / 128 points
+Computed 100 / 128 points
+Computed 110 / 128 points
+Computed 120 / 128 points
+
+Saved dataset with 128 points to: data/artificial_Qlc_data.csv
+Qlc_true_kW: min/median/max = 0.3815423952848137 9.03616680333052 66.90247063346996
+
+============================================================
+MODEL: powerlaw
+============================================================
+=== Step 2: Training GP emulator -> data/gp_powerlaw.joblib ===
+[powerlaw] training evals: 50/2560
+[powerlaw] training evals: 100/2560
+[powerlaw] training evals: 150/2560
+[powerlaw] training evals: 200/2560
+[powerlaw] training evals: 250/2560
+[powerlaw] training evals: 300/2560
+[powerlaw] training evals: 350/2560
+[powerlaw] training evals: 400/2560
+[powerlaw] training evals: 450/2560
+[powerlaw] training evals: 500/2560
+[powerlaw] training evals: 550/2560
+[powerlaw] training evals: 600/2560
+[powerlaw] training evals: 650/2560
+[powerlaw] training evals: 700/2560
+[powerlaw] training evals: 750/2560
+[powerlaw] training evals: 800/2560
+[powerlaw] training evals: 850/2560
+[powerlaw] training evals: 900/2560
+[powerlaw] training evals: 950/2560
+[powerlaw] training evals: 1000/2560
+[powerlaw] training evals: 1050/2560
+[powerlaw] training evals: 1100/2560
+[powerlaw] training evals: 1150/2560
+[powerlaw] training evals: 1200/2560
+[powerlaw] training evals: 1250/2560
+[powerlaw] training evals: 1300/2560
+[powerlaw] training evals: 1350/2560
+[powerlaw] training evals: 1400/2560
+[powerlaw] training evals: 1450/2560
+[powerlaw] training evals: 1500/2560
+[powerlaw] training evals: 1550/2560
+[powerlaw] training evals: 1600/2560
+[powerlaw] training evals: 1650/2560
+[powerlaw] training evals: 1700/2560
+[powerlaw] training evals: 1750/2560
+[powerlaw] training evals: 1800/2560
+[powerlaw] training evals: 1850/2560
+[powerlaw] training evals: 1900/2560
+[powerlaw] training evals: 1950/2560
+[powerlaw] training evals: 2000/2560
+[powerlaw] training evals: 2050/2560
+[powerlaw] training evals: 2100/2560
+[powerlaw] training evals: 2150/2560
+[powerlaw] training evals: 2200/2560
+[powerlaw] training evals: 2250/2560
+[powerlaw] training evals: 2300/2560
+[powerlaw] training evals: 2350/2560
+[powerlaw] training evals: 2400/2560
+[powerlaw] training evals: 2450/2560
+[powerlaw] training evals: 2500/2560
+[powerlaw] training evals: 2550/2560
+Saved GP emulator: data/gp_powerlaw.joblib
+Kernel: 10**2 * Matern(length_scale=[22.3, 6.98, 5.41, 5.07], nu=2.5) + WhiteKernel(noise_level=6.12e-07)
+
+=== Step 3: Bayesian calibration (emcee) -> data/posterior_powerlaw.npy ===
+Saved posterior samples to data/posterior_powerlaw.npy
+powerlaw posterior mean: [-11.95337272   1.58169952] std: [0.07947904 1.25674832]
+
+=== Step 4: UQ plots -> outputs/uq_powerlaw* ===
+
+============================================================
+MODEL: exponential
+============================================================
+=== Step 2: Training GP emulator -> data/gp_exponential.joblib ===
+[exponential] training evals: 50/2560
+[exponential] training evals: 100/2560
+[exponential] training evals: 150/2560
+[exponential] training evals: 200/2560
+[exponential] training evals: 250/2560
+[exponential] training evals: 300/2560
+[exponential] training evals: 350/2560
+[exponential] training evals: 400/2560

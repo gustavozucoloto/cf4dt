@@ -5,7 +5,7 @@ import joblib
 import matplotlib.pyplot as plt
 
 from .gp_utils import gp_predict
-from .forward_toy import alpha_model
+from .forward import alpha_model
 
 
 def uq_maps(model_name, gp_path, posterior_path, out_prefix="uq", n_post=400, seed=0):

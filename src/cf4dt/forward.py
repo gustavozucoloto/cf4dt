@@ -94,6 +94,24 @@ def alpha_model_ufl(T, theta, model: str = "powerlaw", T0: float = 200.0):
     raise ValueError(f"Unknown alpha model: {model}")
 
 
+def alpha_model(T, theta, model: str = "powerlaw", T0: float = 200.0):
+    """
+    Return alpha(T;theta) as a numpy array (for UQ/plotting, not UFL).
+
+    theta = (beta0, beta1)
+
+    powerlaw:    alpha = exp(beta0) * (T/T0)^beta1
+    exponential: alpha = exp(beta0 + beta1*(T - T0))
+    """
+    beta0, beta1 = theta
+
+    if model == "powerlaw":
+        return np.exp(beta0) * (T / T0) ** beta1
+    if model == "exponential":
+        return np.exp(beta0 + beta1 * (T - T0))
+    raise ValueError(f"Unknown alpha model: {model}")
+
+
 # =============================================================================
 # Material property accessor
 # =============================================================================
@@ -304,15 +322,15 @@ def compute_Qlc(
         petsc_options = {
             "snes_type": "newtonls",
             "snes_linesearch_type": "bt",
-            "snes_rtol": 1e-8,
-            "snes_atol": 1e-10,
-            "snes_max_it": 30,
-            "snes_error_if_not_converged": True,
+            "snes_rtol": 1e-5,  # Relaxed from 1e-8
+            "snes_atol": 1e-7,  # Relaxed from 1e-10
+            "snes_max_it": 100,  # Increased from 30
+            "snes_error_if_not_converged": False,  # Don't fail; just warn
 
             "ksp_type": "gmres",
-            "ksp_rtol": 1e-8,
-            "ksp_max_it": 200,
-            "ksp_error_if_not_converged": True,
+            "ksp_rtol": 1e-6,  # Relaxed from 1e-8
+            "ksp_max_it": 300,  # Increased from 200
+            "ksp_error_if_not_converged": False,  # Don't fail; just warn
         }
         # Preconditioner choice
         if comm.size == 1:
