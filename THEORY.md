@@ -112,13 +112,13 @@ Given synthetic observations $\{(W_i, T_{s,i}, y_i)\}$ with measurement noise $\
 
 ### 3.2 Prior Distribution
 
-Gaussian priors centered at $(\beta_0, \beta_1) = (-9, 0)$:
+Gaussian priors centered at $(\beta_0, \beta_1) = (-15, 0)$:
 
 **Powerlaw model:**
-$$p(\theta) = \mathcal{N}(\beta_0; -9, 2^2) \times \mathcal{N}(\beta_1; 0, 2^2)$$
+$$p(\theta) = \mathcal{N}(\beta_0; -15, 5^2) \times \mathcal{N}(\beta_1; 0, 0.5^2)$$
 
 **Exponential model:**
-$$p(\theta) = \mathcal{N}(\beta_0; -9, 2^2) \times \mathcal{N}(\beta_1; 0, 0.015^2)$$
+$$p(\theta) = \mathcal{N}(\beta_0; -15, 5^2) \times \mathcal{N}(\beta_1; 0, 0.05^2)$$
 
 The priors are truncated to their respective parameter bounds (see §1.3).
 
@@ -143,7 +143,11 @@ The posterior is explored using the Affine Invariant Ensemble MCMC sampler (`emc
 Initial positions are drawn from:
 $$p_0 = \theta_{\text{init}} + \mathcal{N}(0, \Sigma_{\text{init}})$$
 
-where $\theta_{\text{init}} = (-9, 0)$ and $\Sigma_{\text{init}}$ is model-dependent (tighter for exponential).
+where $\theta_{\text{init}} = (-14, 0)$ and $\Sigma_{\text{init}}$ is model-dependent:
+- Powerlaw: $\text{diag}(2.0^2, 0.3^2)$
+- Exponential: $\text{diag}(2.0^2, 0.03^2)$
+
+The MCMC sampler supports parallel execution via multiprocessing, with the number of parallel processes controlled by the `n_jobs` parameter.
 
 ---
 
