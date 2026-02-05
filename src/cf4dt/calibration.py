@@ -13,19 +13,19 @@ def log_prior(theta, model_name):
     beta0, beta1 = theta
 
     if model_name == "powerlaw":
-        # beta0 ~ N(-14.0, 0.6^2), beta1 ~ N(1.1, 0.4^2) truncated to beta1 > 0
-        if not (-16 <= beta0 <= -12 and 0 <= beta1 <= 3):
+        # beta0 ~ N(-14.0, 0.3^2), beta1 ~ N(1.1, 0.3^2) - tightened around Ulamec fit
+        if not (-14.5 <= beta0 <= -13.5 and 0.5 <= beta1 <= 1.7):
             return -np.inf
-        lp_beta0 = -0.5 * ((beta0 + 14.0) / 0.6) ** 2
-        lp_beta1 = -0.5 * ((beta1 - 1.1) / 0.4) ** 2
+        lp_beta0 = -0.5 * ((beta0 + 14.0) / 0.3) ** 2
+        lp_beta1 = -0.5 * ((beta1 - 1.1) / 0.3) ** 2
         return lp_beta0 + lp_beta1
 
     if model_name == "exponential":
-        # beta0 ~ N(-14.0, 0.6^2), beta1 ~ N(0.006, 0.003^2) truncated to beta1 > 0
-        if not (-16 <= beta0 <= -12 and 0 <= beta1 <= 0.02):
+        # beta0 ~ N(-14.0, 0.3^2), beta1 ~ N(0.006, 0.002^2) - tightened around Ulamec fit
+        if not (-14.5 <= beta0 <= -13.5 and 0.002 <= beta1 <= 0.010):
             return -np.inf
-        lp_beta0 = -0.5 * ((beta0 + 14.0) / 0.6) ** 2
-        lp_beta1 = -0.5 * ((beta1 - 0.006) / 0.003) ** 2
+        lp_beta0 = -0.5 * ((beta0 + 14.0) / 0.3) ** 2
+        lp_beta1 = -0.5 * ((beta1 - 0.006) / 0.002) ** 2
         return lp_beta0 + lp_beta1
 
     raise ValueError(model_name)

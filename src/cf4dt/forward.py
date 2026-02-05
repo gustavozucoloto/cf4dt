@@ -355,9 +355,12 @@ def compute_Qlc(
 
     # -------------------------------------------------------------------------
     # Wall heat flux and Q_lc integration
-    # q = (-alpha ∇T)·n
+    # q = (-k ∇T)·n = (-alpha * rho * cp * ∇T)·n  [W/m²]
+    # (must include rho*cp to convert from thermal diffusivity to thermal conductivity)
     # -------------------------------------------------------------------------
-    q_expr = (-alphaT * ufl.dot(ufl.grad(T), n))
+    rhoT = rho_ice_ulamec(T)
+    cpT = cp_ice_ulamec(T)
+    q_expr = (-alphaT * rhoT * cpT * ufl.dot(ufl.grad(T), n))
 
     # Initial flux
     q_prev = fem.assemble_scalar(fem.form(q_expr * ds(1)))

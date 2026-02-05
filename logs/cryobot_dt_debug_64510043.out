@@ -1,6 +1,6 @@
 HOME_REAL:      /rwthfs/rz/cluster/home/kq336027
 MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
-Job started on: n23m0173.hpc.itc.rwth-aachen.de
+Job started on: n23m0062.hpc.itc.rwth-aachen.de
 Project dir:    /rwthfs/rz/cluster/home/kq336027/cf4dt
 CPUs per task:  16
 MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
@@ -18,7 +18,7 @@ Running 20 simulations serially...
   Progress: 20/20
 
 Saved dataset with 20 points to: data/artificial_Qlc_data.csv
-Qlc_true_kW: min/median/max = 1.8778042398325266e-07 2.5825593119642707e-06 1.0736964641673413e-05
+Qlc_true_kW: min/median/max = 0.3637554679858434 5.0027582811749545 20.798917773919225
 
 ============================================================
 MODEL: powerlaw
@@ -35,11 +35,11 @@ MODEL: powerlaw
   [powerlaw] Progress: 400/400
   [powerlaw] Progress: 350/400
 Saved GP emulator: data/gp_powerlaw.joblib
-Kernel: 10**2 * Matern(length_scale=[3.74, 9.46, 15.3, 53.9], nu=2.5) + WhiteKernel(noise_level=1e-08)
+Kernel: 10**2 * RBF(length_scale=[1.47, 3.44, 10.9, 19.2]) + WhiteKernel(noise_level=1e-08)
 
 === Step 3: Bayesian calibration (emcee) -> data/posterior_powerlaw.npy ===
 Saved posterior samples to data/posterior_powerlaw.npy
-powerlaw posterior mean: [-15.82691171   1.01042354] std: [0.1324301  0.37893588]
+powerlaw posterior mean: [-14.07717337   0.98018172] std: [0.34026615 0.00839246]
 
 === Step 4: UQ plots -> outputs/uq_powerlaw* ===
 
@@ -58,11 +58,11 @@ MODEL: exponential
   [exponential] Progress: 400/400
   [exponential] Progress: 350/400
 Saved GP emulator: data/gp_exponential.joblib
-Kernel: 10**2 * Matern(length_scale=[3.79, 10.2, 14.9, 40.1], nu=2.5) + WhiteKernel(noise_level=1e-08)
+Kernel: 10**2 * RBF(length_scale=[1.47, 2.8, 11.1, 18.8]) + WhiteKernel(noise_level=1e-08)
 
 === Step 3: Bayesian calibration (emcee) -> data/posterior_exponential.npy ===
 Saved posterior samples to data/posterior_exponential.npy
-exponential posterior mean: [-1.58609008e+01  4.69859815e-03] std: [0.10996537 0.00240217]
+exponential posterior mean: [-1.40945073e+01  5.25353105e-03] std: [0.34266985 0.00081305]
 
 === Step 4: UQ plots -> outputs/uq_exponential* ===
 

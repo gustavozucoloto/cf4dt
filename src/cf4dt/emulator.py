@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import Matern, WhiteKernel, ConstantKernel
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
 from sklearn.preprocessing import StandardScaler
 from multiprocessing import Pool
 import joblib
@@ -15,10 +15,10 @@ def _compute_single_training_point(args):
     """Worker function for parallel emulator training."""
     from mpi4py import MPI
     
-    W, Ts, th, model_name, solver_kwargs, counter, total = args
+    W_mph, W_mps, Ts, th, model_name, solver_kwargs, counter, total = args
     
     Q = compute_Qlc(
-        W=float(W),
+        W=float(W_mps),
         Ts=float(Ts),
         material_model=model_name,
         theta=(float(th[0]), float(th[1])),
@@ -26,12 +26,12 @@ def _compute_single_training_point(args):
         **solver_kwargs,
     )
     
-    Q_kW = Q / 1000.0 if Q > 1000 else Q
+    Q_kW = Q / 1000.0  # Always convert W to kW
     
     if counter % 50 == 0:
         print(f"  [{model_name}] Progress: {counter}/{total}", flush=True)
     
-    return [W, Ts, th[0], th[1]], Q_kW
+    return [W_mph, Ts, th[0], th[1]], Q_kW
 
 
 def lhs(n, d, seed=0):
@@ -46,15 +46,15 @@ def lhs(n, d, seed=0):
 def sample_theta(n_theta, model_name, seed=0):
     u = lhs(n_theta, 2, seed=seed)
     if model_name == "powerlaw":
-        # β₀ ∈ [-16, -12]: tight range around Ulamec-matched value -14
-        # β₁ ∈ [0, 3]: positive power-law exponent
-        beta0 = -16 + 4.0 * u[:, 0]  # β₀ ∈ [-16, -12]
-        beta1 = 0.0 + 3.0 * u[:, 1]   # β₁ ∈ [0, 3]
+        # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
+        # β₁ ∈ [0.5, 1.7]: tight range around Ulamec fit (1.1)
+        beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
+        beta1 = 0.5 + 1.2 * u[:, 1]     # β₁ ∈ [0.5, 1.7]
     elif model_name == "exponential":
-        # β₀ ∈ [-16, -12]: same tight range as powerlaw
-        # β₁ ∈ [0, 0.02]: small exponential coefficient
-        beta0 = -16 + 4.0 * u[:, 0]  # β₀ ∈ [-16, -12]
-        beta1 = 0.0 + 0.02 * u[:, 1]   # β₁ ∈ [0, 0.02]
+        # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
+        # β₁ ∈ [0.002, 0.010]: tight range around Ulamec fit (0.006)
+        beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
+        beta1 = 0.002 + 0.008 * u[:, 1]   # β₁ ∈ [0.002, 0.010]
     else:
         raise ValueError(model_name)
     return np.column_stack([beta0, beta1])
@@ -96,9 +96,10 @@ def build_training_set(
     total = n_theta * len(idx)
 
     for th in thetas:
-        for W, Ts in zip(W_pts, Ts_pts):
+        for W_mph, Ts in zip(W_pts, Ts_pts):
             counter += 1
-            args_list.append((W, Ts, th, model_name, solver_kwargs, counter, total))
+            W_mps = W_mph / 3600.0
+            args_list.append((W_mph, W_mps, Ts, th, model_name, solver_kwargs, counter, total))
 
     # Parallel or serial execution
     if n_jobs > 1:
@@ -128,10 +129,9 @@ def fit_gp(X, y):
     Xs = xscaler.fit_transform(X)
     ys = yscaler.fit_transform(y.reshape(-1, 1)).ravel()
 
-    kernel = ConstantKernel(1.0, (1e-2, 1e2)) * Matern(
+    kernel = ConstantKernel(1.0, (1e-2, 1e2)) * RBF(
         length_scale=np.ones(X.shape[1]),
         length_scale_bounds=(1e-2, 1e2),
-        nu=2.5,
     ) + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-8, 1e-1))
 
     gp = GaussianProcessRegressor(

@@ -41,9 +41,11 @@ $$\alpha(T; \theta) = \exp(\beta_0) \left(\frac{T}{T_0}\right)^{\beta_1}$$
 **Exponential model:**
 $$\alpha(T; \theta) = \exp(\beta_0 + \beta_1(T - T_0))$$
 
-where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The prior parameter ranges are informed by matching the Ulamec (2007) model:
-- Powerlaw: $\beta_0 \in [-16, -12]$, $\beta_1 \in [0, 3]$
-- Exponential: $\beta_0 \in [-16, -12]$, $\beta_1 \in [0, 0.02]$
+where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The prior parameter ranges are tightly informed by matching the Ulamec (2007) model:
+- Powerlaw: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.5, 1.7]$
+- Exponential: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.002, 0.010]$
+
+These narrow ranges ensure the MCMC search explores only physically plausible regions near the Ulamec approximations.
 
 **Figure:** The figure below shows 50 random samples from the prior distributions of both toy models, overlaid with the Ulamec reference alpha(T). Generate it with:
 ```bash
@@ -68,19 +70,21 @@ A training set is constructed by evaluating the forward model on a Design of Exp
 
 Default configuration:
 - $n_{\text{design}} = 64$ spatial points (subsampled from full dataset)
-- $n_\theta = 40$ parameter samples (LHS)
+- $n_\theta = 40$ parameter samples (LHS, sampled from tightened bounds)
 - Total training points: $64 \times 40 = 2560$
+
+Parameter sampling uses LHS within the tightened bounds to ensure dense coverage in regions explored during calibration.
 
 ### 2.2 GP Kernel and Fitting
 
-The Gaussian Process uses a composite kernel:
+The Gaussian Process uses a simplified composite kernel:
 
-$$K = \sigma_\ell^2 \cdot \text{Matérn}(\nu=2.5, \ell_i) + \sigma_{\text{white}}^2$$
+$$K = \sigma_\ell^2 \cdot \text{RBF}(\ell_i) + \sigma_{\text{white}}^2$$
 
-**Why Matérn (ν=2.5)?**
-- **Smoothness control**: ν=2.5 corresponds to twice-differentiable functions, appropriate for thermal physics where temperatures and heat fluxes should vary smoothly
-- **Better generalization**: RBF kernels (ν=∞) assume infinite smoothness, often overfitting; Matérn is more realistic for real data with measurement error
-- **Per-dimension length scales**: Each input (W, T_s, β₀, β₁) gets its own length scale, allowing the model to learn that some inputs matter more than others
+**Why RBF (Radial Basis Function)?**
+- **Simplicity**: RBF assumes smooth, infinitely-differentiable functions—appropriate for emulating smooth PDE solutions
+- **Efficiency**: Fewer hyperparameters and faster to optimize than Matérn, ideal for exploratory surrogate modeling
+- **Per-dimension length scales**: Each input (W, T_s, β₀, β₁) gets its own length scale, learning the importance of each dimension
 
 **Why White Kernel (noise)?**
 - **Model discrepancy**: The GP surrogate is an approximation to expensive PDE solves; White noise captures this systematic error
@@ -88,10 +92,10 @@ $$K = \sigma_\ell^2 \cdot \text{Matérn}(\nu=2.5, \ell_i) + \sigma_{\text{white}
 - **Realistic uncertainty**: Real observations have sensor noise (~0.1 kW); GP noise term absorbs both measurement and model error
 
 **Why combine them?**
-The composite kernel Matérn + White is standard in surrogate modeling because:
-1. Matérn captures the smooth underlying physics
-2. White noise prevents overfitting and numerical issues
-3. The hyperparameters (amplitudes, length scales, noise) are learned from data via maximum likelihood
+The composite kernel RBF + White provides:
+1. A smooth representation of the underlying physics
+2. Robustness through white noise capturing model error and numerical precision
+3. Hyperparameters (amplitudes, length scales, noise) learned automatically from data via maximum likelihood
 
 The GP is trained on standardized input features ($X_s$) and standardized output targets ($y_s$) using maximum likelihood estimation with $n_{\text{restarts}} = 3$ random initializations of hyperparameters.
 
@@ -112,15 +116,17 @@ Given synthetic observations $\{(W_i, T_{s,i}, y_i)\}$ with measurement noise $\
 
 ### 3.2 Prior Distribution
 
-Gaussian priors informed by matching the Ulamec (2007) model:
+Tight Gaussian priors informed by matching the Ulamec (2007) model:
 
 **Powerlaw model:**
-$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.6^2) \times \mathcal{N}(\beta_1; 1.1, 0.4^2)$$
+$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 1.1, 0.3^2)$$
+trun­cated to $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.5, 1.7]$
 
 **Exponential model:**
-$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.6^2) \times \mathcal{N}(\beta_1; 0.006, 0.003^2)$$
+$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 0.006, 0.002^2)$$
+trun­cated to $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.002, 0.010]$
 
-The priors are truncated to $\beta_1 > 0$ and to their respective parameter bounds (see §1.3).
+The tightened priors constrain the search to physically plausible regions near the Ulamec approximations.
 
 ### 3.3 Likelihood
 
@@ -144,8 +150,8 @@ Initial positions are drawn from:
 $$p_0 = \theta_{\text{init}} + \mathcal{N}(0, \Sigma_{\text{init}})$$
 
 where $\theta_{\text{init}}$ and $\Sigma_{\text{init}}$ are model-dependent:
-- Powerlaw: $\theta_{\text{init}} = (-14, 1.1)$, $\Sigma_{\text{init}} = \text{diag}(0.6^2, 0.4^2)$
-- Exponential: $\theta_{\text{init}} = (-14, 0.006)$, $\Sigma_{\text{init}} = \text{diag}(0.6^2, 0.003^2)$
+- Powerlaw: $\theta_{\text{init}} = (-14, 1.1)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.3^2)$
+- Exponential: $\theta_{\text{init}} = (-14, 0.006)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.002^2)$
 
 The MCMC sampler supports parallel execution via multiprocessing, with the number of parallel processes controlled by the `n_jobs` parameter.
 

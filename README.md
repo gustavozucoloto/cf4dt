@@ -199,3 +199,5 @@ In SLURM batch scripts, the workflow reads `$SLURM_CPUS_PER_TASK` and passes it 
 - Unified forward solver: `src/cf4dt/forward.py` with `compute_Qlc(material_model='ulamec'|'powerlaw'|'exponential', theta=...)` (transient axisymmetric heat conduction using thermal diffusivity formulation).
 - All models use alpha (thermal diffusivity) formulation: `dT/dt = (1/r) d/dr(alpha(T) * r * dT/dr)`.
 - Truth data uses `material_model='ulamec'` with alpha computed from k/(rho*cp); emulator/calibration use the parameterized toy models.
+- **Priors and GP training**: Tightened to explore regions near Ulamec fits (powerlaw: β₀∈[-14.5,-13.5], β₁∈[0.5,1.7]; exponential: β₀∈[-14.5,-13.5], β₁∈[0.002,0.010]).
+- **GP kernel**: Simplified to RBF + WhiteKernel for faster fitting and cleaner interpretability.

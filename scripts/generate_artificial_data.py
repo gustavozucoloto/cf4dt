@@ -13,11 +13,8 @@ from cf4dt.data_generation import generate_artificial_data
 
 
 def main():
-    # ========== EDIT THESE LISTS TO DEFINE YOUR DATA POINTS ==========
-    # Define your custom velocities (in meters per hour)
     W_mph_list = [0.05, 0.5, 2.0, 5.0]
     
-    # Define your custom temperatures (in Kelvin)
     Ts_K_list = [80.0, 125.0, 170.0, 215.0, 260.0]
     # ==================================================================
     
@@ -28,7 +25,7 @@ def main():
         W_mph_list=W_mph_list,
         Ts_K_list=Ts_K_list,
         seed_noise=2,
-        sigma_kW=0.1,
+        sigma_kW=1e-7,  # ~10% noise level (signal is ~1e-6 kW)
         Ro=0.1,
         L=3.7,
         Tm=273.15,

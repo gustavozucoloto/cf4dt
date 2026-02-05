@@ -5,7 +5,7 @@ import joblib
 import matplotlib.pyplot as plt
 
 from .gp_utils import gp_predict
-from .forward import alpha_model
+from .forward import alpha_model, k_ice_ulamec, rho_ice_ulamec, cp_ice_ulamec
 
 
 def uq_maps(model_name, gp_path, posterior_path, out_prefix="uq", n_post=400, seed=0):
@@ -59,13 +59,18 @@ def uq_maps(model_name, gp_path, posterior_path, out_prefix="uq", n_post=400, se
     a_med = np.median(alpha_draws, axis=0)
     a_lo = np.percentile(alpha_draws, 2.5, axis=0)
     a_hi = np.percentile(alpha_draws, 97.5, axis=0)
+    
+    # Compute Ulamec reference
+    alpha_ulamec = k_ice_ulamec(T) / (rho_ice_ulamec(T) * cp_ice_ulamec(T))
 
     plt.figure()
-    plt.fill_between(T, a_lo, a_hi, alpha=0.3)
-    plt.plot(T, a_med)
+    plt.fill_between(T, a_lo, a_hi, alpha=0.3, label='95% Credible Interval')
+    plt.plot(T, a_med, label=f'{model_name.capitalize()} (median)')
+    plt.plot(T, alpha_ulamec, 'k--', linewidth=2, label='Ulamec (2007) - Truth')
     plt.yscale("log")
     plt.xlabel("T (K)")
-    plt.ylabel("alpha(T)")
+    plt.ylabel("alpha(T) [m²/s]")
     plt.title(f"Posterior alpha(T) band ({model_name})")
+    plt.legend()
     plt.tight_layout()
     plt.savefig(f"{out_prefix}_alpha_band_{model_name}.png", dpi=200)
