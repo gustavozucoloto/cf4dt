@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-"""Generate alpha model comparison plot for THEORY.md"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,15 +27,16 @@ rho = rho_ice_ulamec(T)
 cp = cp_ice_ulamec(T)
 alpha_ulamec = k / (rho * cp)
 
-# Sample powerlaw and exponential from prior ranges
+# Sample powerlaw and exponential from CRAZY WIDE prior ranges
 np.random.seed(42)
 theta_powerlaw_samples = np.column_stack([
-    np.random.uniform(-12, -6, 50),
-    np.random.uniform(-4, 4, 50)
+    np.random.uniform(-20, -10, 50),
+    np.random.uniform(-1, 1, 50)
 ])
+
 theta_exp_samples = np.column_stack([
-    np.random.uniform(-12, -6, 50),
-    np.random.uniform(-0.03, 0.03, 50)
+    np.random.uniform(-20, -10, 50),
+    np.random.uniform(-0.1, 0.1, 50)
 ])
 
 # Create figure

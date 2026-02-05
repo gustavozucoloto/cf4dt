@@ -1,0 +1,11 @@
+[INFO] Module GCC/14.3.0 loaded.
+srun: Job step aborted: Waiting up to 92 seconds for job step to finish.
+[2026-02-05T11:06:42.076] error: *** JOB 64496555 ON n23m0310 CANCELLED AT 2026-02-05T11:06:42 DUE to SIGNAL Terminated ***
+[2026-02-05T11:06:42.076] error: *** STEP 64496555.1 ON n23m0310 CANCELLED AT 2026-02-05T11:06:42 DUE to SIGNAL Terminated ***
+[0]PETSC ERROR: ------------------------------------------------------------------------
+[0]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[0]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[0]PETSC ERROR: or see https://petsc.org/release/faq/#valgrind and https://petsc.org/release/faq/
+[0]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[0]PETSC ERROR: to get more information on the crash.
+Abort(59) on node 0 (rank 0 in comm 0): application called MPI_Abort(MPI_COMM_WORLD, 59) - process 0

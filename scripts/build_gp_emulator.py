@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-"""CLI to train GP emulator for a toy forward model."""
 
 import argparse
 import sys

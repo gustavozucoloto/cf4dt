@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-"""CLI to run Bayesian calibration (emcee) using a GP emulator."""
-
 import argparse
 import sys
 from pathlib import Path

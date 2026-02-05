@@ -1,0 +1,20 @@
+HOME_REAL:      /rwthfs/rz/cluster/home/kq336027
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+Job started on: n23m0310.hpc.itc.rwth-aachen.de
+Project dir:    /rwthfs/rz/cluster/home/kq336027/cf4dt
+CPUs per task:  16
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+
+=== Sanity check: Python + MPI vendor ===
+Python OK
+MPI vendor: ('MPICH', (4, 3, 2))
+MPI library: MPICH Version:      4.3.2
+COMM_WORLD size: 1
+
+=== Step 1: Generating artificial data -> data/artificial_Qlc_data.csv ===
+Running 128 simulations with 16 parallel processes...
+  Progress: 10/128
+  Progress: 30/128
+  Progress: 20/128
+  Progress: 40/128
+  Progress: 60/128

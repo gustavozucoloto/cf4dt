@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-"""CLI to generate uncertainty quantification plots using GP and posterior samples."""
 
 import argparse
 import sys

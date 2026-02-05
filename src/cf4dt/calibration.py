@@ -13,14 +13,14 @@ def log_prior(theta, model_name):
     beta0, beta1 = theta
 
     if model_name == "powerlaw":
-        if not (-12 <= beta0 <= -6 and -4 <= beta1 <= 4):
+        if not (-20 <= beta0 <= -10 and -1 <= beta1 <= 1):
             return -np.inf
-        return -0.5 * ((beta0 + 9) / 2.0) ** 2 - 0.5 * (beta1 / 2.0) ** 2
+        return -0.5 * ((beta0 + 15) / 5.0) ** 2 - 0.5 * (beta1 / 0.5) ** 2
 
     if model_name == "exponential":
-        if not (-12 <= beta0 <= -6 and -0.03 <= beta1 <= 0.03):
+        if not (-20 <= beta0 <= -10 and -0.1 <= beta1 <= 0.1):
             return -np.inf
-        return -0.5 * ((beta0 + 9) / 2.0) ** 2 - 0.5 * (beta1 / 0.015) ** 2
+        return -0.5 * ((beta0 + 15) / 5.0) ** 2 - 0.5 * (beta1 / 0.05) ** 2
 
     raise ValueError(model_name)
 
@@ -51,6 +51,7 @@ def run_mcmc(
     burn=1500,
     thin=10,
     seed=0,
+    n_jobs=1,  # Number of parallel processes (1=serial)
 ):
     df = pd.read_csv(data_csv)
 
@@ -65,21 +66,36 @@ def run_mcmc(
     rng = np.random.default_rng(seed)
 
     if model_name == "powerlaw":
-        init = np.array([-9.0, 0.0])
-        spread = np.array([0.3, 0.3])
+        init = np.array([-14.0, 0.0])
+        spread = np.array([2.0, 0.3])
     else:
-        init = np.array([-9.0, 0.0])
-        spread = np.array([0.3, 0.003])
+        init = np.array([-14.0, 0.0])
+        spread = np.array([2.0, 0.03])
 
     p0 = init + spread * rng.standard_normal(size=(nwalkers, ndim))
 
-    sampler = emcee.EnsembleSampler(
-        nwalkers,
-        ndim,
-        lambda th: log_posterior(th, bundle, model_name, W, Ts, y_obs, sigma_meas),
-    )
+    log_prob_args = (bundle, model_name, W, Ts, y_obs, sigma_meas)
 
-    sampler.run_mcmc(p0, nsteps, progress=True)
+    # Use Pool for parallel walkers if n_jobs > 1
+    if n_jobs > 1:
+        with Pool(processes=n_jobs) as pool:
+            sampler = emcee.EnsembleSampler(
+                nwalkers,
+                ndim,
+                log_posterior,
+                args=log_prob_args,
+                moves=emcee.moves.StretchMove(a=2.0),
+                pool=pool,
+            )
+            sampler.run_mcmc(p0, nsteps, progress=True)
+    else:
+        sampler = emcee.EnsembleSampler(
+            nwalkers,
+            ndim,
+            log_posterior,
+            args=log_prob_args,
+        )
+        sampler.run_mcmc(p0, nsteps, progress=True)
 
     samples = sampler.get_chain(discard=burn, thin=thin, flat=True)
     return samples

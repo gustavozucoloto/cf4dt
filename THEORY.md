@@ -41,9 +41,9 @@ $$\alpha(T; \theta) = \exp(\beta_0) \left(\frac{T}{T_0}\right)^{\beta_1}$$
 **Exponential model:**
 $$\alpha(T; \theta) = \exp(\beta_0 + \beta_1(T - T_0))$$
 
-where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The prior parameter ranges for both models are:
-- Powerlaw: $\beta_0 \in [-12, -6]$, $\beta_1 \in [-4, 4]$
-- Exponential: $\beta_0 \in [-12, -6]$, $\beta_1 \in [-0.03, 0.03]$
+where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The prior parameter ranges are intentionally broad to represent maximum pre-data uncertainty without assuming knowledge of the true material properties:
+- Powerlaw: $\beta_0 \in [-20, -10]$ (exp($\beta_0$) $\in$ [2e-9, 4.5e-5] m²/s), $\beta_1 \in [-1, 1]$
+- Exponential: $\beta_0 \in [-20, -10]$, $\beta_1 \in [-0.1, 0.1]$
 
 **Figure:** The figure below shows 50 random samples from the prior distributions of both toy models, overlaid with the Ulamec reference alpha(T). Generate it with:
 ```bash
@@ -77,8 +77,21 @@ The Gaussian Process uses a composite kernel:
 
 $$K = \sigma_\ell^2 \cdot \text{Matérn}(\nu=2.5, \ell_i) + \sigma_{\text{white}}^2$$
 
-- **Matérn kernel** (length scales $\ell_i$ per dimension): captures smooth variation
-- **White noise term**: captures measurement and discretization error
+**Why Matérn (ν=2.5)?**
+- **Smoothness control**: ν=2.5 corresponds to twice-differentiable functions, appropriate for thermal physics where temperatures and heat fluxes should vary smoothly
+- **Better generalization**: RBF kernels (ν=∞) assume infinite smoothness, often overfitting; Matérn is more realistic for real data with measurement error
+- **Per-dimension length scales**: Each input (W, T_s, β₀, β₁) gets its own length scale, allowing the model to learn that some inputs matter more than others
+
+**Why White Kernel (noise)?**
+- **Model discrepancy**: The GP surrogate is an approximation to expensive PDE solves; White noise captures this systematic error
+- **Numerical stability**: Small noise prevents ill-conditioning when fitting; variance goes from near-zero to ~1e-5 as learned
+- **Realistic uncertainty**: Real observations have sensor noise (~0.1 kW); GP noise term absorbs both measurement and model error
+
+**Why combine them?**
+The composite kernel Matérn + White is standard in surrogate modeling because:
+1. Matérn captures the smooth underlying physics
+2. White noise prevents overfitting and numerical issues
+3. The hyperparameters (amplitudes, length scales, noise) are learned from data via maximum likelihood
 
 The GP is trained on standardized input features ($X_s$) and standardized output targets ($y_s$) using maximum likelihood estimation with $n_{\text{restarts}} = 3$ random initializations of hyperparameters.
 

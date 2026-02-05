@@ -46,11 +46,14 @@ def lhs(n, d, seed=0):
 def sample_theta(n_theta, model_name, seed=0):
     u = lhs(n_theta, 2, seed=seed)
     if model_name == "powerlaw":
-        beta0 = -12 + 6 * u[:, 0]
-        beta1 = -4 + 8 * u[:, 1]
+        # β₀ ∈ [-20, -10]: exp(β₀) ∈ [2e-9, 4.5e-5], huge range of thermal diffusivities
+        # β₁ ∈ [-1, 1]: allows both decreasing and increasing with T
+        beta0 = -20 + 10.0 * u[:, 0]  # β₀ ∈ [-20, -10]
+        beta1 = -1.0 + 2.0 * u[:, 1]   # β₁ ∈ [-1, 1]
     elif model_name == "exponential":
-        beta0 = -12 + 6 * u[:, 0]
-        beta1 = -0.03 + 0.06 * u[:, 1]
+        # Same wild β₀ range; exponential β₁ ∈ [-0.1, 0.1]
+        beta0 = -20 + 10.0 * u[:, 0]  # β₀ ∈ [-20, -10]
+        beta1 = -0.1 + 0.2 * u[:, 1]   # β₁ ∈ [-0.1, 0.1]
     else:
         raise ValueError(model_name)
     return np.column_stack([beta0, beta1])

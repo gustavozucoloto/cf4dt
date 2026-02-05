@@ -35,12 +35,11 @@ def uq_maps(model_name, gp_path, posterior_path, out_prefix="uq", n_post=400, se
                     samples[:, 1],
                 ]
             )
-            mu, std = gp_predict(bundle, X)
-            z = rng.standard_normal(len(mu))
-            Q_draw = mu + std * z
-            Q_med[iT, iW] = np.median(Q_draw)
-            Q_lo[iT, iW] = np.percentile(Q_draw, 2.5)
-            Q_hi[iT, iW] = np.percentile(Q_draw, 97.5)
+            mu, _ = gp_predict(bundle, X)
+            # Parametric uncertainty only (no GP predictive noise)
+            Q_med[iT, iW] = np.median(mu)
+            Q_lo[iT, iW] = np.percentile(mu, 2.5)
+            Q_hi[iT, iW] = np.percentile(mu, 97.5)
 
     plt.figure()
     for Ts_pick in [100, 160, 220, 260]:

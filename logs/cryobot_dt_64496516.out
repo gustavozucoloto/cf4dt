@@ -1,0 +1,56 @@
+HOME_REAL:      /rwthfs/rz/cluster/home/kq336027
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+Job started on: n23m0047.hpc.itc.rwth-aachen.de
+Project dir:    /rwthfs/rz/cluster/home/kq336027/cf4dt
+CPUs per task:  16
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+
+=== Sanity check: Python + MPI vendor ===
+Python OK
+MPI vendor: ('MPICH', (4, 3, 2))
+MPI library: MPICH Version:      4.3.2
+COMM_WORLD size: 1
+
+=== Step 1: Generating artificial data -> data/artificial_Qlc_data.csv ===
+Running 28 simulations with 16 parallel processes...
+  Progress: 10/28
+  Progress: 20/28
+
+Saved dataset with 28 points to: data/artificial_Qlc_data.csv
+Qlc_true_kW: min/median/max = 1.8716454861770806e-07 2.214190719138334e-06 1.0736920688196093e-05
+
+============================================================
+MODEL: powerlaw
+============================================================
+=== Step 2: Training GP emulator -> data/gp_powerlaw.joblib ===
+[powerlaw] Building training set with 16 parallel processes...
+  [powerlaw] Progress: 50/160
+  [powerlaw] Progress: 100/160
+  [powerlaw] Progress: 150/160
+Saved GP emulator: data/gp_powerlaw.joblib
+Kernel: 8.64**2 * Matern(length_scale=[6.6, 12.9, 3.12, 100], nu=2.5) + WhiteKernel(noise_level=0.000223)
+
+=== Step 3: Bayesian calibration (emcee) -> data/posterior_powerlaw.npy ===
+Saved posterior samples to data/posterior_powerlaw.npy
+powerlaw posterior mean: [-1.52527783e+01  3.42604303e-03] std: [2.53730584 0.4605037 ]
+
+=== Step 4: UQ plots -> outputs/uq_powerlaw* ===
+
+============================================================
+MODEL: exponential
+============================================================
+=== Step 2: Training GP emulator -> data/gp_exponential.joblib ===
+[exponential] Building training set with 16 parallel processes...
+  [exponential] Progress: 50/160
+  [exponential] Progress: 100/160
+  [exponential] Progress: 150/160
+Saved GP emulator: data/gp_exponential.joblib
+Kernel: 0.765**2 * Matern(length_scale=[100, 0.824, 100, 0.256], nu=2.5) + WhiteKernel(noise_level=1e-08)
+
+=== Step 3: Bayesian calibration (emcee) -> data/posterior_exponential.npy ===
+Saved posterior samples to data/posterior_exponential.npy
+exponential posterior mean: [-1.51529952e+01 -7.09873486e-03] std: [1.70765751 0.02230541]
+
+=== Step 4: UQ plots -> outputs/uq_exponential* ===
+
+All done.

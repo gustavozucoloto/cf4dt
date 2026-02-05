@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-"""CLI to generate synthetic Q_lc dataset using full FEniCSx model."""
 
 import argparse
 import sys
