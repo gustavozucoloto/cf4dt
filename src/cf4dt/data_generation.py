@@ -38,8 +38,10 @@ def _compute_single_point(args):
 
 def generate_artificial_data(
     out_csv="artificial_Qlc_data.csv",
-    n_lhs=120,
-    seed_design=1,
+    W_mph_list=None,
+    Ts_K_list=None,
+    n_Ts=10,
+    n_W=12,
     seed_noise=2,
     sigma_kW=0.1,
     Ts_min=80.0,
@@ -61,13 +63,23 @@ def generate_artificial_data(
     
     Parameters
     ----------
+    W_mph_list : list or array, optional
+        Explicit list of velocities in meters per hour. If provided, uses these instead of generating.
+    Ts_K_list : list or array, optional
+        Explicit list of temperatures in K. If provided, uses these instead of generating.
+    n_Ts : int
+        Number of uniformly spaced temperature points (used if Ts_K_list not provided)
+    n_W : int
+        Number of uniformly spaced (log-scale) velocity points in m/h (used if W_mph_list not provided)
     n_jobs : int
         Number of parallel processes. Set to 1 for serial execution.
         Recommended: number of CPU cores for large datasets.
     """
     W_all, Ts_all = sample_design(
-        n_lhs=n_lhs,
-        seed=seed_design,
+        W_mph_list=W_mph_list,
+        Ts_K_list=Ts_K_list,
+        n_Ts=n_Ts,
+        n_W=n_W,
         Ts_min=Ts_min,
         Ts_max=Ts_max,
         W_mph_min=W_mph_min,
@@ -105,21 +117,16 @@ def generate_artificial_data(
 
     df = pd.DataFrame(
         {
-            "W_mps": W_all,
             "W_mph": W_all * 3600.0,
             "Ts_K": Ts_all,
-            "Ro_m": Ro,
-            "Rinf_m": Rinf,
-            "L_m": L,
-            "Tm_K": Tm,
-            "Qlc_true_W": Q_true_W,
             "Qlc_true_kW": Q_true_W / 1000.0,
             "y_obs_kW": y_obs_kW,
             "sigma_kW": sigma_kW,
             "num_cells": num_cells,
             "p_grade": p_grade,
-            "seed_design": seed_design,
             "seed_noise": seed_noise,
+            "n_Ts": n_Ts,
+            "n_W": n_W,
         }
     )
 

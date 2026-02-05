@@ -46,10 +46,23 @@ Since our HPC cluster do not have conda available, use **micromamba** instead:
 Execute the workflow steps manually:
 
 1. Generate synthetic truth data (Ulamec material model):
-   ```bash
-   python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv
+   
+   Edit velocity and temperature lists in `scripts/generate_artificial_data.py`:
+   ```python
+   # Define your custom velocities (in meters per hour)
+   W_mph_list = [0.05, 0.5, 2.0, 5.0]
+   
+   # Define your custom temperatures (in Kelvin)
+   Ts_K_list = [80.0, 125.0, 170.0, 215.0, 260.0]
    ```
-   Useful flags: `--n-lhs`, `--num-cells`, `--p-grade`, `--Ts-min/max`, `--W-min/max`.
+   
+   Then run:
+   ```bash
+   python scripts/generate_artificial_data.py
+   ```
+   
+   This creates a full grid: 4 velocities × 5 temperatures = 20 simulation points.
+   To use parallel execution, edit `n_jobs` parameter in the script.
 
 2. Train GP emulator on reduced model (choose powerlaw or exponential):
    ```bash
@@ -127,20 +140,22 @@ cat logs/cryobot_dt_<JOBID>.err
 All workflow steps support parallel execution via the `--n-jobs` parameter to accelerate high-throughput tasks on multi-core systems:
 
 ### Basic Usage
-```bash
-# Serial execution (default)
-python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv
 
-# Parallel execution with 16 cores
-python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv --n-jobs 16
+Edit the `n_jobs` parameter in each script:
+```python
+# In scripts/generate_artificial_data.py
+generate_artificial_data(
+    ...,
+    n_jobs=1,  # Change to 16 for parallel execution
+)
 ```
+
+or set it during workflow execution (see scripts for details).
 
 ### Parallel Steps in Workflow
 
 1. **Data Generation** (independent forward simulations):
-   ```bash
-   python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv --n-jobs 16
-   ```
+   - Edit `n_jobs` parameter in `scripts/generate_artificial_data.py`
    - Parallelizes forward model evaluations over design points (W, Ts)
    - Each worker uses isolated MPI communicator to avoid conflicts
    - Expected speedup: ~4-8x on 16 cores (I/O and initialization overhead)
@@ -169,11 +184,9 @@ python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv --
    - Expected speedup: ~10-15x on 16 cores (minimal overhead)
 
 ### Cluster Integration
-In SLURM batch scripts, set `--n-jobs` to match requested CPUs:
+In SLURM batch scripts, the workflow reads `$SLURM_CPUS_PER_TASK` and passes it to the `n_jobs` parameter programmatically. Edit `run_workflow.sbatch` to adjust parallelism:
 ```bash
 #SBATCH --cpus-per-task=16
-
-python scripts/generate_artificial_data.py --n-jobs $SLURM_CPUS_PER_TASK
 ```
 
 ### Performance Notes

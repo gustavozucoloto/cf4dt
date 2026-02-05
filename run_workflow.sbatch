@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=cryobot_dt
+#SBATCH --job-name=cryobot_dt_debug
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
-#SBATCH --time=12:00:00
+#SBATCH --time=00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
@@ -66,9 +66,8 @@ echo
 TRUTH_DATA="data/artificial_Qlc_data.csv"
 
 echo "=== Step 1: Generating artificial data -> ${TRUTH_DATA} ==="
-srun --mpi=none -n 1 $MM python scripts/generate_artificial_data.py \
-  --out "$TRUTH_DATA" \
-  --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
+echo "Note: Edit velocity/temperature lists and n_jobs in scripts/generate_artificial_data.py"
+srun --mpi=none -n 1 $MM python scripts/generate_artificial_data.py
 echo
 
 # ---------- STEPS 2-4: loop over both parameterized models ----------
@@ -86,6 +85,8 @@ for MODEL in powerlaw exponential; do
     --model "$MODEL" \
     --data "$TRUTH_DATA" \
     --out "$GP_FILE" \
+    --n-theta 20 \
+    --subset 32 \
     --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
   echo
 
@@ -95,6 +96,9 @@ for MODEL in powerlaw exponential; do
     --data "$TRUTH_DATA" \
     --gp "$GP_FILE" \
     --out "$POST_FILE" \
+    --nwalkers 16 \
+    --nsteps 500 \
+    --burn 100 \
     --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
   echo
 

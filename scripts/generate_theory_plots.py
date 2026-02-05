@@ -27,16 +27,18 @@ rho = rho_ice_ulamec(T)
 cp = cp_ice_ulamec(T)
 alpha_ulamec = k / (rho * cp)
 
-# Sample powerlaw and exponential from CRAZY WIDE prior ranges
+# Sample powerlaw and exponential from theory-based prior ranges
 np.random.seed(42)
+# Powerlaw: beta0 ~ N(-14, 0.6^2), beta1 ~ N(1.1, 0.4^2) truncated to beta1 > 0
 theta_powerlaw_samples = np.column_stack([
-    np.random.uniform(-20, -10, 50),
-    np.random.uniform(-1, 1, 50)
+    np.random.normal(-14, 0.6, 50),
+    np.abs(np.random.normal(1.1, 0.4, 50))  # truncated to positive
 ])
 
+# Exponential: beta0 ~ N(-14, 0.6^2), beta1 ~ N(0.006, 0.003^2) truncated to beta1 > 0
 theta_exp_samples = np.column_stack([
-    np.random.uniform(-20, -10, 50),
-    np.random.uniform(-0.1, 0.1, 50)
+    np.random.normal(-14, 0.6, 50),
+    np.abs(np.random.normal(0.006, 0.003, 50))  # truncated to positive
 ])
 
 # Create figure

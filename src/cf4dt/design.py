@@ -1,51 +1,52 @@
-"""Design utilities (Latin Hypercube sampling for Ts, W)."""
+"""Design utilities (uniform grid sampling for Ts, W)."""
 
 import numpy as np
 
 
-def lhs_2d(n, rng):
-    u = np.zeros((n, 2), dtype=float)
-    for j in range(2):
-        perm = rng.permutation(n)
-        u[:, j] = (perm + rng.random(n)) / n
-    return u
-
-
 def sample_design(
-    n_lhs=120,
-    seed=1,
+    W_mph_list=None,
+    Ts_K_list=None,
+    n_Ts=10,
+    n_W=12,
     Ts_min=80.0,
     Ts_max=260.0,
     W_mph_min=0.05,
     W_mph_max=10.0,
+    **kwargs  # Accept but ignore legacy parameters like seed, n_lhs
 ):
-    """Return (W_all [m/s], Ts_all [K]) covering bounds plus edge points."""
-    rng = np.random.default_rng(seed)
-    u = lhs_2d(n_lhs, rng=rng)
-
-    Ts = Ts_min + (Ts_max - Ts_min) * u[:, 0]
-
-    logWmin = np.log10(W_mph_min)
-    logWmax = np.log10(W_mph_max)
-    W_mph = 10 ** (logWmin + (logWmax - logWmin) * u[:, 1])
-    W = W_mph / 3600.0
-
-    Ts_mid = 0.5 * (Ts_min + Ts_max)
-    W_mph_mid = 10 ** (0.5 * (logWmin + logWmax))
-
-    edge = [
-        (W_mph_min, Ts_min),
-        (W_mph_min, Ts_max),
-        (W_mph_max, Ts_min),
-        (W_mph_max, Ts_max),
-        (W_mph_min, Ts_mid),
-        (W_mph_max, Ts_mid),
-        (W_mph_mid, Ts_min),
-        (W_mph_mid, Ts_max),
-    ]
-    W_edge = np.array([w for w, _ in edge]) / 3600.0
-    Ts_edge = np.array([t for _, t in edge])
-
-    W_all = np.hstack([W, W_edge])
-    Ts_all = np.hstack([Ts, Ts_edge])
+    """
+    Return (W_all [m/s], Ts_all [K]) as grid.
+    
+    Parameters
+    ----------
+    W_mph_list : list or array, optional
+        Explicit list of velocities in meters per hour. If provided, uses these instead of generating.
+    Ts_K_list : list or array, optional
+        Explicit list of temperatures in K. If provided, uses these instead of generating.
+    n_Ts : int
+        Number of uniformly spaced temperature points (used if Ts_K_list not provided)
+    n_W : int
+        Number of uniformly spaced (log-scale) velocity points in m/h (used if W_mph_list not provided)
+    """
+    # Use explicit lists if provided, otherwise generate
+    if Ts_K_list is not None:
+        Ts_grid = np.array(Ts_K_list)
+    else:
+        Ts_grid = np.linspace(Ts_min, Ts_max, n_Ts)
+    
+    if W_mph_list is not None:
+        W_mph_grid = np.array(W_mph_list)
+    else:
+        logWmin = np.log10(W_mph_min)
+        logWmax = np.log10(W_mph_max)
+        W_mph_grid = np.logspace(logWmin, logWmax, n_W)
+    
+    W_grid = W_mph_grid / 3600.0  # Convert from meters/hour to m/s
+    
+    # Create meshgrid
+    W_mesh, Ts_mesh = np.meshgrid(W_grid, Ts_grid)
+    
+    # Flatten to get all combinations
+    W_all = W_mesh.ravel()
+    Ts_all = Ts_mesh.ravel()
     return W_all, Ts_all

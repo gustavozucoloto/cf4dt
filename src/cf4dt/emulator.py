@@ -46,14 +46,15 @@ def lhs(n, d, seed=0):
 def sample_theta(n_theta, model_name, seed=0):
     u = lhs(n_theta, 2, seed=seed)
     if model_name == "powerlaw":
-        # β₀ ∈ [-20, -10]: exp(β₀) ∈ [2e-9, 4.5e-5], huge range of thermal diffusivities
-        # β₁ ∈ [-1, 1]: allows both decreasing and increasing with T
-        beta0 = -20 + 10.0 * u[:, 0]  # β₀ ∈ [-20, -10]
-        beta1 = -1.0 + 2.0 * u[:, 1]   # β₁ ∈ [-1, 1]
+        # β₀ ∈ [-16, -12]: tight range around Ulamec-matched value -14
+        # β₁ ∈ [0, 3]: positive power-law exponent
+        beta0 = -16 + 4.0 * u[:, 0]  # β₀ ∈ [-16, -12]
+        beta1 = 0.0 + 3.0 * u[:, 1]   # β₁ ∈ [0, 3]
     elif model_name == "exponential":
-        # Same wild β₀ range; exponential β₁ ∈ [-0.1, 0.1]
-        beta0 = -20 + 10.0 * u[:, 0]  # β₀ ∈ [-20, -10]
-        beta1 = -0.1 + 0.2 * u[:, 1]   # β₁ ∈ [-0.1, 0.1]
+        # β₀ ∈ [-16, -12]: same tight range as powerlaw
+        # β₁ ∈ [0, 0.02]: small exponential coefficient
+        beta0 = -16 + 4.0 * u[:, 0]  # β₀ ∈ [-16, -12]
+        beta1 = 0.0 + 0.02 * u[:, 1]   # β₁ ∈ [0, 0.02]
     else:
         raise ValueError(model_name)
     return np.column_stack([beta0, beta1])
@@ -84,7 +85,7 @@ def build_training_set(
     if use_subset_points is not None and use_subset_points < len(df_obs):
         idx = rng.choice(idx, size=use_subset_points, replace=False)
 
-    W_pts = df_obs.loc[idx, "W_mps"].to_numpy()
+    W_pts = df_obs.loc[idx, "W_mph"].to_numpy()
     Ts_pts = df_obs.loc[idx, "Ts_K"].to_numpy()
 
     thetas = sample_theta(n_theta, model_name, seed=seed + 100)
@@ -101,6 +102,9 @@ def build_training_set(
 
     # Parallel or serial execution
     if n_jobs > 1:
+        print(f"[{model_name}] Pre-compiling FEniCS forms to avoid race conditions...")
+        # Run one computation in main process to populate JIT cache
+        _compute_single_training_point(args_list[0])
         print(f"[{model_name}] Building training set with {n_jobs} parallel processes...")
         with Pool(processes=n_jobs) as pool:
             results = pool.map(_compute_single_training_point, args_list)

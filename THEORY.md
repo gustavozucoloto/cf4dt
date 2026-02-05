@@ -41,9 +41,9 @@ $$\alpha(T; \theta) = \exp(\beta_0) \left(\frac{T}{T_0}\right)^{\beta_1}$$
 **Exponential model:**
 $$\alpha(T; \theta) = \exp(\beta_0 + \beta_1(T - T_0))$$
 
-where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The prior parameter ranges are intentionally broad to represent maximum pre-data uncertainty without assuming knowledge of the true material properties:
-- Powerlaw: $\beta_0 \in [-20, -10]$ (exp($\beta_0$) $\in$ [2e-9, 4.5e-5] m²/s), $\beta_1 \in [-1, 1]$
-- Exponential: $\beta_0 \in [-20, -10]$, $\beta_1 \in [-0.1, 0.1]$
+where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The prior parameter ranges are informed by matching the Ulamec (2007) model:
+- Powerlaw: $\beta_0 \in [-16, -12]$, $\beta_1 \in [0, 3]$
+- Exponential: $\beta_0 \in [-16, -12]$, $\beta_1 \in [0, 0.02]$
 
 **Figure:** The figure below shows 50 random samples from the prior distributions of both toy models, overlaid with the Ulamec reference alpha(T). Generate it with:
 ```bash
@@ -112,15 +112,15 @@ Given synthetic observations $\{(W_i, T_{s,i}, y_i)\}$ with measurement noise $\
 
 ### 3.2 Prior Distribution
 
-Gaussian priors centered at $(\beta_0, \beta_1) = (-15, 0)$:
+Gaussian priors informed by matching the Ulamec (2007) model:
 
 **Powerlaw model:**
-$$p(\theta) = \mathcal{N}(\beta_0; -15, 5^2) \times \mathcal{N}(\beta_1; 0, 0.5^2)$$
+$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.6^2) \times \mathcal{N}(\beta_1; 1.1, 0.4^2)$$
 
 **Exponential model:**
-$$p(\theta) = \mathcal{N}(\beta_0; -15, 5^2) \times \mathcal{N}(\beta_1; 0, 0.05^2)$$
+$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.6^2) \times \mathcal{N}(\beta_1; 0.006, 0.003^2)$$
 
-The priors are truncated to their respective parameter bounds (see §1.3).
+The priors are truncated to $\beta_1 > 0$ and to their respective parameter bounds (see §1.3).
 
 ### 3.3 Likelihood
 
@@ -143,9 +143,9 @@ The posterior is explored using the Affine Invariant Ensemble MCMC sampler (`emc
 Initial positions are drawn from:
 $$p_0 = \theta_{\text{init}} + \mathcal{N}(0, \Sigma_{\text{init}})$$
 
-where $\theta_{\text{init}} = (-14, 0)$ and $\Sigma_{\text{init}}$ is model-dependent:
-- Powerlaw: $\text{diag}(2.0^2, 0.3^2)$
-- Exponential: $\text{diag}(2.0^2, 0.03^2)$
+where $\theta_{\text{init}}$ and $\Sigma_{\text{init}}$ are model-dependent:
+- Powerlaw: $\theta_{\text{init}} = (-14, 1.1)$, $\Sigma_{\text{init}} = \text{diag}(0.6^2, 0.4^2)$
+- Exponential: $\theta_{\text{init}} = (-14, 0.006)$, $\Sigma_{\text{init}} = \text{diag}(0.6^2, 0.003^2)$
 
 The MCMC sampler supports parallel execution via multiprocessing, with the number of parallel processes controlled by the `n_jobs` parameter.
 
