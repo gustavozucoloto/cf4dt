@@ -1,0 +1,45 @@
+HOME_REAL:      /rwthfs/rz/cluster/home/kq336027
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+Job started on: n23m0331.hpc.itc.rwth-aachen.de
+Project dir:    /rwthfs/rz/cluster/home/kq336027/cf4dt
+CPUs per task:  16
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+
+=== Sanity check: Python + MPI vendor ===
+Python OK
+MPI vendor: ('MPICH', (4, 3, 2))
+MPI library: MPICH Version:      4.3.2
+COMM_WORLD size: 1
+
+=== Step 1: Generating artificial data -> data/artificial_Qlc_data.csv ===
+Running 128 simulations with 16 parallel processes...
+  Progress: 30/128
+  Progress: 10/128
+  Progress: 20/128
+  Progress: 40/128
+  Progress: 60/128
+  Progress: 50/128
+  Progress: 70/128
+  Progress: 80/128
+  Progress: 90/128
+  Progress: 100/128
+  Progress: 120/128
+  Progress: 110/128
+
+Saved dataset with 128 points to: data/artificial_Qlc_data.csv
+Qlc_true_kW: min/median/max = 1.8716454861770806e-07 2.327862443497684e-06 1.0736920688196093e-05
+
+============================================================
+MODEL: powerlaw
+============================================================
+=== Step 2: Training GP emulator -> data/gp_powerlaw.joblib ===
+[powerlaw] Building training set with 16 parallel processes...
+  [powerlaw] Progress: 50/2560
+  [powerlaw] Progress: 250/2560
+  [powerlaw] Progress: 450/2560
+  [powerlaw] Progress: 100/2560
+  [powerlaw] Progress: 500/2560
+  [powerlaw] Progress: 300/2560
+  [powerlaw] Progress: 150/2560
+  [powerlaw] Progress: 350/2560
+  [powerlaw] Progress: 550/2560

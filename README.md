@@ -19,7 +19,7 @@ pip install -r requirements.txt
 Ensure `mpirun`/MPI is available (dolfinx requires it even in serial mode).
 
 ### HPC Cluster Setup (via Micromamba)
-Since most HPC clusters do not have conda available, use **micromamba** instead:
+Since our HPC cluster do not have conda available, use **micromamba** instead:
 
 1. **Install micromamba** (if not already installed):
    ```bash
@@ -122,6 +122,67 @@ tail -f logs/cryobot_dt_<JOBID>.out
 cat logs/cryobot_dt_<JOBID>.err
 ```
 
+## Parallel Execution
+
+All workflow steps support parallel execution via the `--n-jobs` parameter to accelerate high-throughput tasks on multi-core systems:
+
+### Basic Usage
+```bash
+# Serial execution (default)
+python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv
+
+# Parallel execution with 16 cores
+python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv --n-jobs 16
+```
+
+### Parallel Steps in Workflow
+
+1. **Data Generation** (independent forward simulations):
+   ```bash
+   python scripts/generate_artificial_data.py --out data/artificial_Qlc_data.csv --n-jobs 16
+   ```
+   - Parallelizes forward model evaluations over design points (W, Ts)
+   - Each worker uses isolated MPI communicator to avoid conflicts
+   - Expected speedup: ~4-8x on 16 cores (I/O and initialization overhead)
+
+2. **GP Training** (building training set):
+   ```bash
+   python scripts/build_gp_emulator.py --model powerlaw \
+       --data data/artificial_Qlc_data.csv \
+       --out data/gp_powerlaw.joblib \
+       --n-jobs 16
+   ```
+   - Parallelizes forward evaluations over (W, Ts, theta) grid
+   - GP training itself is serial (fast fitting step)
+   - Expected speedup: ~6-10x on 16 cores
+
+3. **Bayesian Calibration** (MCMC with emcee):
+   ```bash
+   python scripts/run_bayesian_calibration.py --model powerlaw \
+       --data data/artificial_Qlc_data.csv \
+       --gp data/gp_powerlaw.joblib \
+       --out data/posterior_powerlaw.npy \
+       --n-jobs 16
+   ```
+   - Uses emcee's built-in multiprocessing for parallel walkers
+   - Each walker evaluates GP likelihood independently
+   - Expected speedup: ~10-15x on 16 cores (minimal overhead)
+
+### Cluster Integration
+In SLURM batch scripts, set `--n-jobs` to match requested CPUs:
+```bash
+#SBATCH --cpus-per-task=16
+
+python scripts/generate_artificial_data.py --n-jobs $SLURM_CPUS_PER_TASK
+```
+
+### Performance Notes
+- Use `n_jobs=1` (default) for serial execution or small problem sizes
+- Optimal `n_jobs` ≈ number of physical cores (not hyperthreads)
+- Monitor with `htop` to verify core utilization
+- Each parallel worker uses MPI.COMM_SELF to isolate dolfinx communicators
+
 ## Notes
-- Unified forward solver: `src/cf4dt/forward.py` with `compute_Qlc(material_model='ulamec'|'powerlaw'|'exponential', theta=...)` (steady-state axisymmetric conduction).
-- Truth data uses `material_model='ulamec'`; emulator/calibration use the parameterized models.
+- Unified forward solver: `src/cf4dt/forward.py` with `compute_Qlc(material_model='ulamec'|'powerlaw'|'exponential', theta=...)` (transient axisymmetric heat conduction using thermal diffusivity formulation).
+- All models use alpha (thermal diffusivity) formulation: `dT/dt = (1/r) d/dr(alpha(T) * r * dT/dr)`.
+- Truth data uses `material_model='ulamec'` with alpha computed from k/(rho*cp); emulator/calibration use the parameterized toy models.

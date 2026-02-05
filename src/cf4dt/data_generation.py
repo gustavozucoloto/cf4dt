@@ -2,10 +2,38 @@
 
 import numpy as np
 import pandas as pd
+from multiprocessing import Pool
 
 from .design import sample_design
 from .noise import add_noise_kW
 from .forward import compute_Qlc
+
+
+def _compute_single_point(args):
+    """Worker function for parallel data generation."""
+    from mpi4py import MPI  # Import inside worker
+    
+    i, W, Ts, Ro, L, Tm, Rinf, num_cells, p_grade, num_steps, dt_ratio, n_pts = args
+    
+    Q = compute_Qlc(
+        W=float(W),
+        Ts=float(Ts),
+        material_model="ulamec",
+        Ro=Ro,
+        L=L,
+        Tm=Tm,
+        Rinf=Rinf,
+        num_cells=num_cells,
+        p_grade=p_grade,
+        num_steps=num_steps,
+        dt_ratio=dt_ratio,
+        comm=MPI.COMM_SELF,  # Each worker uses its own communicator
+    )
+    
+    if (i + 1) % 10 == 0:
+        print(f"  Progress: {i + 1}/{n_pts}", flush=True)
+    
+    return i, Q
 
 
 def generate_artificial_data(
@@ -25,10 +53,17 @@ def generate_artificial_data(
     num_cells=400,
     p_grade=3.0,
     num_steps=1000,
-    dt_ratio=1.03
+    dt_ratio=1.03,
+    n_jobs=1,  # Number of parallel processes (1=serial)
 ):
     """
-    Generate synthetic Q_lc observations; runs in serial.
+    Generate artificial dataset with optional parallel execution.
+    
+    Parameters
+    ----------
+    n_jobs : int
+        Number of parallel processes. Set to 1 for serial execution.
+        Recommended: number of CPU cores for large datasets.
     """
     W_all, Ts_all = sample_design(
         n_lhs=n_lhs,
@@ -39,31 +74,28 @@ def generate_artificial_data(
         W_mph_max=W_mph_max,
     )
     n_pts = len(W_all)
-
     Rinf = Ro + float(Rinf_offset)
 
-    Q_true_W = np.full(n_pts, np.nan, dtype=float)
+    # Prepare arguments for all evaluations
+    args_list = [
+        (i, W_all[i], Ts_all[i], Ro, L, Tm, Rinf, num_cells, p_grade,
+         num_steps, dt_ratio, n_pts)
+        for i in range(n_pts)
+    ]
 
-    for i in range(n_pts):
-        W = float(W_all[i])
-        Ts = float(Ts_all[i])
-
-        Qlc_W = compute_Qlc(
-            W=W,
-            Ts=Ts,
-            material_model="ulamec",
-            Ro=Ro,
-            L=L,
-            Tm=Tm,
-            Rinf=Rinf,
-            num_cells=num_cells,
-            p_grade=p_grade,
-        )
-
-        Q_true_W[i] = Qlc_W
-
-        if (i + 1) % 10 == 0:
-            print(f"Computed {i + 1} / {n_pts} points")
+    # Parallel or serial execution
+    if n_jobs > 1:
+        print(f"Running {n_pts} simulations with {n_jobs} parallel processes...")
+        with Pool(processes=n_jobs) as pool:
+            results = pool.map(_compute_single_point, args_list)
+    else:
+        print(f"Running {n_pts} simulations serially...")
+        results = [_compute_single_point(args) for args in args_list]
+    
+    # Extract results in correct order
+    Q_true_W = np.zeros(n_pts)
+    for idx, Q in results:
+        Q_true_W[idx] = Q
 
     if np.any(np.isnan(Q_true_W)):
         missing = np.where(np.isnan(Q_true_W))[0]

@@ -24,6 +24,7 @@ def parse_args():
     p.add_argument("--burn", type=int, default=1500)
     p.add_argument("--thin", type=int, default=10)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--n-jobs", type=int, default=1, help="Number of parallel processes (1=serial)")
     return p.parse_args()
 
 
@@ -39,6 +40,7 @@ def main():
         burn=args.burn,
         thin=args.thin,
         seed=args.seed,
+        n_jobs=args.n_jobs,
     )
 
 

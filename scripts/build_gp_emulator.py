@@ -21,6 +21,7 @@ def parse_args():
     p.add_argument("--n-theta", type=int, default=40, help="Number of theta samples")
     p.add_argument("--subset", type=int, default=64, help="Number of design points to subsample")
     p.add_argument("--seed", type=int, default=1)
+    p.add_argument("--n-jobs", type=int, default=1, help="Number of parallel processes (1=serial)")
     return p.parse_args()
 
 
@@ -34,6 +35,7 @@ def main():
         use_subset_points=args.subset,
         seed=args.seed,
         solver_kwargs={},
+        n_jobs=args.n_jobs,
     )
 
 

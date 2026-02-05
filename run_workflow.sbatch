@@ -67,7 +67,8 @@ TRUTH_DATA="data/artificial_Qlc_data.csv"
 
 echo "=== Step 1: Generating artificial data -> ${TRUTH_DATA} ==="
 srun --mpi=none -n 1 $MM python scripts/generate_artificial_data.py \
-  --out "$TRUTH_DATA"
+  --out "$TRUTH_DATA" \
+  --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
 echo
 
 # ---------- STEPS 2-4: loop over both parameterized models ----------
@@ -84,7 +85,8 @@ for MODEL in powerlaw exponential; do
   srun --mpi=none -n 1 $MM python scripts/build_gp_emulator.py \
     --model "$MODEL" \
     --data "$TRUTH_DATA" \
-    --out "$GP_FILE"
+    --out "$GP_FILE" \
+    --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
   echo
 
   echo "=== Step 3: Bayesian calibration (emcee) -> ${POST_FILE} ==="
@@ -92,7 +94,8 @@ for MODEL in powerlaw exponential; do
     --model "$MODEL" \
     --data "$TRUTH_DATA" \
     --gp "$GP_FILE" \
-    --out "$POST_FILE"
+    --out "$POST_FILE" \
+    --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
   echo
 
   echo "=== Step 4: UQ plots -> ${OUT_PREFIX}* ==="

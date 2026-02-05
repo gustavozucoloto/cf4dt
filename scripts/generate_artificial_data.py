@@ -32,6 +32,7 @@ def parse_args():
     p.add_argument("--p-grade", type=float, default=3.0)
     p.add_argument("--num-steps", type=int, default=1000)
     p.add_argument("--dt-ratio", type=float, default=1.03)
+    p.add_argument("--n-jobs", type=int, default=1, help="Number of parallel processes (1=serial)")
     return p.parse_args()
 
 
@@ -55,6 +56,7 @@ def main():
         p_grade=args.p_grade,
         num_steps=args.num_steps,
         dt_ratio=args.dt_ratio,
+        n_jobs=args.n_jobs,
     )
 
 

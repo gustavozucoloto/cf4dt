@@ -5,9 +5,33 @@ import pandas as pd
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern, WhiteKernel, ConstantKernel
 from sklearn.preprocessing import StandardScaler
+from multiprocessing import Pool
 import joblib
 
 from .forward import compute_Qlc
+
+
+def _compute_single_training_point(args):
+    """Worker function for parallel emulator training."""
+    from mpi4py import MPI
+    
+    W, Ts, th, model_name, solver_kwargs, counter, total = args
+    
+    Q = compute_Qlc(
+        W=float(W),
+        Ts=float(Ts),
+        material_model=model_name,
+        theta=(float(th[0]), float(th[1])),
+        comm=MPI.COMM_SELF,
+        **solver_kwargs,
+    )
+    
+    Q_kW = Q / 1000.0 if Q > 1000 else Q
+    
+    if counter % 50 == 0:
+        print(f"  [{model_name}] Progress: {counter}/{total}", flush=True)
+    
+    return [W, Ts, th[0], th[1]], Q_kW
 
 
 def lhs(n, d, seed=0):
@@ -39,7 +63,16 @@ def build_training_set(
     seed=1,
     use_subset_points=64,
     solver_kwargs=None,
+    n_jobs=1,  # Number of parallel processes (1=serial)
 ):
+    """
+    Build GP training set with optional parallel execution.
+    
+    Parameters
+    ----------
+    n_jobs : int
+        Number of parallel processes. Set to 1 for serial execution.
+    """
     if solver_kwargs is None:
         solver_kwargs = {}
 
@@ -53,28 +86,28 @@ def build_training_set(
 
     thetas = sample_theta(n_theta, model_name, seed=seed + 100)
 
-    X_list, y_list = [], []
-    total = n_theta * len(idx)
+    # Prepare all arguments
+    args_list = []
     counter = 0
+    total = n_theta * len(idx)
 
     for th in thetas:
         for W, Ts in zip(W_pts, Ts_pts):
-            Q = compute_Qlc(
-                W=float(W),
-                Ts=float(Ts),
-                material_model=model_name,
-                theta=(float(th[0]), float(th[1])),
-                **solver_kwargs,
-            )
-
-            Q_kW = Q / 1000.0 if Q > 1000 else Q
-
-            X_list.append([W, Ts, th[0], th[1]])
-            y_list.append(Q_kW)
-
             counter += 1
-            if counter % 50 == 0:
-                print(f"[{model_name}] training evals: {counter}/{total}")
+            args_list.append((W, Ts, th, model_name, solver_kwargs, counter, total))
+
+    # Parallel or serial execution
+    if n_jobs > 1:
+        print(f"[{model_name}] Building training set with {n_jobs} parallel processes...")
+        with Pool(processes=n_jobs) as pool:
+            results = pool.map(_compute_single_training_point, args_list)
+    else:
+        print(f"[{model_name}] Building training set serially...")
+        results = [_compute_single_training_point(args) for args in args_list]
+
+    # Extract X and y
+    X_list = [r[0] for r in results]
+    y_list = [r[1] for r in results]
 
     X = np.array(X_list, dtype=float)
     y = np.array(y_list, dtype=float)
@@ -112,7 +145,16 @@ def train_and_save_emulator(
     seed=1,
     use_subset_points=64,
     solver_kwargs=None,
+    n_jobs=1,  # Number of parallel processes (1=serial)
 ):
+    """
+    Train GP emulator with optional parallel execution.
+    
+    Parameters
+    ----------
+    n_jobs : int
+        Number of parallel processes. Set to 1 for serial execution.
+    """
     df = pd.read_csv(df_path)
 
     if solver_kwargs is None:
@@ -125,6 +167,7 @@ def train_and_save_emulator(
         use_subset_points=use_subset_points,
         seed=seed,
         solver_kwargs=solver_kwargs,
+        n_jobs=n_jobs,
     )
 
     gp, xscaler, yscaler = fit_gp(X, y)

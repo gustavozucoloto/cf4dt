@@ -1,30 +1,24 @@
 """
 fenicsx_forward_qlc.py  (FEniCSx / dolfinx)
 
-Unified forward model for Q_lc computation.
+Unified forward model for Q_lc computation using thermal diffusivity (alpha).
 
-This module is a corrected + fully functioning refactor of your forward model that:
-- Preserves the ORIGINAL transient physics (your artificial-data generator):
-    rho(T) cp(T) dT/dt = (1/r) d/dr ( k(T) r dT/dr )
+This module solves the transient heat conduction problem in thermal diffusivity form:
+    dT/dt = (1/r) d/dr(alpha(T) * r * dT/dr)
   with t_end = L/W and
     Q_lc = 2π Ro * W * ∫_0^{t_end} q(t) dt
-    q(t) = (-k ∇T)·n at r = Ro
+    q(t) = (-alpha ∇T)·n at r = Ro
 
-- Supports multiple material models:
-    material_model="ulamec"      -> full Ulamec k(T), rho(T), cp(T)
-    material_model="powerlaw"    -> toy alpha(T;theta) with k = (rho0*cp0)*alpha
-    material_model="exponential" -> toy alpha(T;theta) with k = (rho0*cp0)*alpha
+Supports three material models:
+    - "ulamec": Uses Ulamec (2007) correlations, computes alpha(T) = k(T)/(rho(T)*cp(T))
+    - "powerlaw": Toy model alpha(T;theta) = exp(beta0) * (T/T0)^beta1
+    - "exponential": Toy model alpha(T;theta) = exp(beta0 + beta1*(T - T0))
 
-- Optionally supports a steady conduction mode (W-independent) for quick tests:
-    mode="steady" -> solves ∇·(k(T)∇T)=0 and returns Q = 2π Ro L q_wall
-
-Key fixes relative to your refactor:
-- Restores time dependence + W dependence by default (mode="transient").
-- Uses UFL math (ufl.exp) for expressions involving the FEniCS function T.
-- Makes the toy alpha-model physically consistent by converting alpha -> conductivity:
-      k = (rho0 * cp0) * alpha
-- Uses consistent heat-flux definition q = (-k ∇T)·n and ensures positivity.
-- Keeps MPI compatibility (comm defaults to MPI.COMM_WORLD), but you can pass MPI.COMM_SELF.
+Key features:
+- Direct calibration of thermal diffusivity (eliminates rho, cp uncertainty)
+- Transient physics with W-dependence
+- UFL-compatible expressions for FEniCS
+- MPI-aware solver
 
 Author: (your refactor helper)
 """
@@ -113,64 +107,58 @@ def alpha_model(T, theta, model: str = "powerlaw", T0: float = 200.0):
 
 
 # =============================================================================
-# Material property accessor
+# Thermal diffusivity models
 # =============================================================================
 
-def get_material_properties(material_model: str,
-                            T,
-                            theta=None,
-                            *,
-                            rho0: float = 917.0,
-                            cp0: float = 2000.0,
-                            C0: float | None = None):
+def alpha_ulamec_ufl(T):
     """
-    Return (k(T), cp(T), rho(T)) as UFL expressions.
+    Compute thermal diffusivity alpha = k/(rho*cp) for Ulamec model (UFL).
+    
+    Returns alpha(T) [m^2/s] as a UFL expression.
+    """
+    kT = k_ice_ulamec(T)
+    rhoT = rho_ice_ulamec(T)
+    cpT = cp_ice_ulamec(T)
+    return kT / (rhoT * cpT)
+
+
+def get_alpha_ufl(material_model: str, T, theta=None):
+    """
+    Return thermal diffusivity alpha(T) as a UFL expression for all models.
 
     Parameters
     ----------
     material_model : str
-        "ulamec", "powerlaw", "exponential"
+        "ulamec", "powerlaw", or "exponential"
     T : dolfinx.fem.Function or UFL expression
         Temperature field
     theta : tuple[float,float] or None
         Required for toy models ("powerlaw", "exponential")
-    rho0, cp0 : float
-        Constant density and heat capacity used for toy models.
-    C0 : float or None
-        If provided, use k = C0 * alpha. Otherwise k = (rho0*cp0) * alpha.
+
+    Returns
+    -------
+    alphaT : UFL expression
+        Thermal diffusivity alpha(T) [m^2/s]
 
     Notes
     -----
-    - For toy models we interpret alpha as *thermal diffusivity* [m^2/s],
-      and convert it to conductivity via k = (rho*cp)*alpha.
-    - cp and rho are constants in the toy models, so rho*cp is constant as well.
+    - "ulamec": alpha = k/(rho*cp) using Ulamec (2007) correlations
+    - "powerlaw": alpha = exp(beta0) * (T/T0)^beta1
+    - "exponential": alpha = exp(beta0 + beta1*(T - T0))
     """
     if material_model == "ulamec":
-        kT = k_ice_ulamec(T)
-        cpT = cp_ice_ulamec(T)
-        rhoT = rho_ice_ulamec(T)
-        return kT, cpT, rhoT
-
+        return alpha_ulamec_ufl(T)
+    
     if material_model in ("powerlaw", "exponential"):
         if theta is None:
             raise ValueError(f"theta is required for material_model='{material_model}'")
-
-        alphaT = alpha_model_ufl(T, theta, model=material_model)
-
-        rhoT = PETSc.ScalarType(rho0)
-        cpT = PETSc.ScalarType(cp0)
-
-        if C0 is None:
-            C0 = float(rho0 * cp0)  # [J/(m^3 K)]
-        kT = PETSc.ScalarType(C0) * alphaT
-
-        return kT, cpT, rhoT
-
+        return alpha_model_ufl(T, theta, model=material_model)
+    
     raise ValueError(f"Unknown material_model: {material_model}")
 
 
 # =============================================================================
-# Forward solver: transient (default) or steady
+# Forward solver: unified transient solver using alpha formulation
 # =============================================================================
 
 def compute_Qlc(
@@ -179,7 +167,6 @@ def compute_Qlc(
     Ts: float,
     material_model: str = "ulamec",
     theta=None,
-    mode: str = "transient",
     Ro: float = 0.1,
     L: float = 3.7,
     Tm: float = 273.15,
@@ -189,33 +176,69 @@ def compute_Qlc(
     p_grade: float = 3.0,
     num_steps: int = 1000,
     dt_ratio: float = 1.03,
-    # toy-model constants (only used when material_model != "ulamec")
-    rho0: float = 917.0,
-    cp0: float = 2000.0,
-    C0: float | None = None,
     # comm and solver behavior
     comm=None,
     petsc_options: dict | None = None,
     petsc_prefix: str = "heat1d_",
-    clamp_k_min: float = 1e-12,
+    clamp_alpha_min: float = 1e-12,
 ) -> float:
     """
-    Compute Q_lc.
+    Compute Q_lc using thermal diffusivity (alpha) formulation.
 
-    mode="transient" (default): reproduces your original artificial-data physics:
-        rho(T)cp(T) (T-Tn)/dt + ∇·(k(T)∇T) = 0
-        t_end = L/W
+    Solves the transient heat conduction problem:
+        dT/dt = (1/r) d/dr(alpha(T) * r * dT/dr)
+    
+    with t_end = L/W and
         Q_lc = 2π Ro * W * ∫_0^{t_end} q(t) dt
-        q = (-k∇T)·n at r=Ro
+        q(t) = (-alpha ∇T)·n at r = Ro
 
-    mode="steady": quick steady conduction approximation (W independent):
-        ∇·(k(T)∇T)=0
-        Q_lc = 2π Ro * L * q_wall
+    Parameters
+    ----------
+    W : float
+        Melt rate [m/s]
+    Ts : float
+        Surface/ambient temperature [K]
+    material_model : str
+        "ulamec", "powerlaw", or "exponential"
+    theta : tuple[float, float] or None
+        Calibration parameters (beta0, beta1) for toy models.
+        Not required for "ulamec".
+    Ro : float
+        Probe radius [m]
+    L : float
+        Probe length [m]
+    Tm : float
+        Melting temperature [K]
+    Rinf : float or None
+        Outer domain radius [m]. Default: Ro + 5.0
+    num_cells : int
+        Number of mesh cells
+    p_grade : float
+        Mesh grading parameter (>1 refines near Ro)
+    num_steps : int
+        Number of time steps
+    dt_ratio : float
+        Time step growth ratio (1.0 = uniform)
+    comm : MPI communicator or None
+        Default: MPI.COMM_WORLD
+    petsc_options : dict or None
+        PETSc solver options
+    petsc_prefix : str
+        PETSc options prefix
+    clamp_alpha_min : float
+        Minimum alpha value to prevent solver issues
 
     Returns
     -------
     Q_lc_total : float
         Total lateral heat loss in Watts (positive).
+
+    Notes
+    -----
+    - All models use alpha formulation: dT/dt = (1/r) d/dr(alpha r dT/dr)
+    - For "ulamec": alpha = k/(rho*cp) using Ulamec (2007) correlations
+    - For toy models: alpha parameterized directly by theta
+    - This eliminates uncertainty from constant rho, cp assumptions
     """
     if comm is None:
         comm = MPI.COMM_WORLD
@@ -223,22 +246,18 @@ def compute_Qlc(
     if Rinf is None:
         Rinf = Ro + 5.0
 
-    if mode not in ("transient", "steady"):
-        raise ValueError("mode must be 'transient' or 'steady'")
-
-    if mode == "transient":
-        if W <= 0:
-            raise ValueError("W must be > 0 in transient mode (t_end=L/W).")
+    if W <= 0:
+        raise ValueError("W must be > 0 (t_end=L/W).")
 
     # -------------------------------------------------------------------------
-    # Build graded 1D mesh r in [Ro, Rinf] by mapping [0,1] -> Ro+(Rinf-Ro)x^p
+    # Build graded 1D mesh r in [Ro, Rinf]
     # -------------------------------------------------------------------------
     domain = mesh.create_interval(comm, num_cells, [0.0, 1.0])
     x = domain.geometry.x
     x[:, 0] = Ro + (Rinf - Ro) * (x[:, 0] ** p_grade)
 
     V = fem.functionspace(domain, ("CG", 1))
-    T = fem.Function(V)   # unknown at current step (or steady)
+    T = fem.Function(V)
     v = ufl.TestFunction(V)
 
     # Boundary tagging
@@ -270,7 +289,7 @@ def compute_Qlc(
     bc_outer = fem.dirichletbc(PETSc.ScalarType(Ts), outer_dofs, V)
     bcs = [bc_inner, bc_outer]
 
-    # Initial condition: ambient Ts everywhere (enforce BC values explicitly)
+    # Initial condition
     T.x.array[:] = Ts
     T.x.array[inner_dofs] = Tm
     T.x.array[outer_dofs] = Ts
@@ -279,41 +298,32 @@ def compute_Qlc(
     rr = ufl.SpatialCoordinate(domain)[0]
     n = ufl.FacetNormal(domain)
 
-    # Material properties (UFL)
-    kT, cpT, rhoT = get_material_properties(
-        material_model, T, theta,
-        rho0=rho0, cp0=cp0, C0=C0
-    )
-    # Clamp k to avoid near-zero/negative issues
-    kT = ufl.max_value(kT, PETSc.ScalarType(clamp_k_min))
+    # Get alpha(T) for the specified model
+    alphaT = get_alpha_ufl(material_model, T, theta=theta)
+    # Clamp to avoid near-zero issues
+    alphaT = ufl.max_value(alphaT, PETSc.ScalarType(clamp_alpha_min))
 
     # -------------------------------------------------------------------------
-    # Variational form
+    # Variational form: transient with implicit Euler
+    # dT/dt = (1/r) d/dr(alpha * r * dT/dr)
     # -------------------------------------------------------------------------
-    if mode == "steady":
-        # ∫ k ∇T·∇v * r dx = 0
-        F = (kT * ufl.dot(ufl.grad(T), ufl.grad(v))) * rr * ufl.dx
-        dt_c = None
-        Tn = None
-        dts = None
+    Tn = fem.Function(V)
+    Tn.x.array[:] = T.x.array[:]
+
+    # Timestep schedule
+    t_end = L / W
+    rratio = float(dt_ratio)
+    if abs(rratio - 1.0) < 1e-14:
+        dts = np.full(num_steps, t_end / num_steps)
     else:
-        # transient: implicit Euler
-        Tn = fem.Function(V)
-        Tn.x.array[:] = T.x.array[:]  # start from the initialized state
+        dt0 = t_end * (rratio - 1.0) / (rratio**num_steps - 1.0)
+        dts = dt0 * (rratio ** np.arange(num_steps))
 
-        # timestep schedule for t_end = L/W
-        t_end = L / W
-        rratio = float(dt_ratio)
-        if abs(rratio - 1.0) < 1e-14:
-            dts = np.full(num_steps, t_end / num_steps)
-        else:
-            dt0 = t_end * (rratio - 1.0) / (rratio**num_steps - 1.0)
-            dts = dt0 * (rratio ** np.arange(num_steps))
+    dt_c = fem.Constant(domain, PETSc.ScalarType(dts[0]))
 
-        dt_c = fem.Constant(domain, PETSc.ScalarType(dts[0]))
-
-        F = (rhoT * cpT * (T - Tn) / dt_c) * v * rr * ufl.dx \
-            + (kT * ufl.dot(ufl.grad(T), ufl.grad(v))) * rr * ufl.dx
+    # Weak form: ∫ (T-Tn)/dt * v * r dr + ∫ alpha ∇T·∇v * r dr = 0
+    F = (T - Tn) / dt_c * v * rr * ufl.dx \
+        + (alphaT * ufl.dot(ufl.grad(T), ufl.grad(v))) * rr * ufl.dx
 
     # -------------------------------------------------------------------------
     # PETSc options
@@ -322,17 +332,15 @@ def compute_Qlc(
         petsc_options = {
             "snes_type": "newtonls",
             "snes_linesearch_type": "bt",
-            "snes_rtol": 1e-5,  # Relaxed from 1e-8
-            "snes_atol": 1e-7,  # Relaxed from 1e-10
-            "snes_max_it": 100,  # Increased from 30
-            "snes_error_if_not_converged": False,  # Don't fail; just warn
-
+            "snes_rtol": 1e-5,
+            "snes_atol": 1e-7,
+            "snes_max_it": 100,
+            "snes_error_if_not_converged": False,
             "ksp_type": "gmres",
-            "ksp_rtol": 1e-6,  # Relaxed from 1e-8
-            "ksp_max_it": 300,  # Increased from 200
-            "ksp_error_if_not_converged": False,  # Don't fail; just warn
+            "ksp_rtol": 1e-6,
+            "ksp_max_it": 300,
+            "ksp_error_if_not_converged": False,
         }
-        # Preconditioner choice
         if comm.size == 1:
             petsc_options["pc_type"] = "ilu"
         else:
@@ -347,49 +355,30 @@ def compute_Qlc(
 
     # -------------------------------------------------------------------------
     # Wall heat flux and Q_lc integration
+    # q = (-alpha ∇T)·n
     # -------------------------------------------------------------------------
-    # Use the physically explicit definition:
-    #   q = (-k ∇T)·n
-    q_expr = (-kT * ufl.dot(ufl.grad(T), n))
+    q_expr = (-alphaT * ufl.dot(ufl.grad(T), n))
 
-    if mode == "steady":
-        # Solve once
-        problem.solve()
-
-        q_wall = fem.assemble_scalar(fem.form(q_expr * ds(1)))
-        q_wall = float(q_wall)
-        q_wall = abs(q_wall)
-
-        # Q = 2π Ro L q_wall
-        Qlc_total = float(2.0 * np.pi * Ro * L * q_wall)
-        return Qlc_total
-
-    # transient integration
-    # assemble flux at initial state:
+    # Initial flux
     q_prev = fem.assemble_scalar(fem.form(q_expr * ds(1)))
     q_prev = float(q_prev)
+    Q_int = 0.0
 
-    Q_int = 0.0  # integral of q dt
-
+    # Time stepping
     for i in range(num_steps):
         dt_c.value = PETSc.ScalarType(dts[i])
-
-        # Solve nonlinear system for this time step
         problem.solve()
-
+        
         q_now = fem.assemble_scalar(fem.form(q_expr * ds(1)))
         q_now = float(q_now)
-
-        # trapezoidal integration
+        
+        # Trapezoidal integration
         Q_int += 0.5 * (q_prev + q_now) * float(dts[i])
         q_prev = q_now
-
-        # update previous solution
+        
+        # Update previous solution
         Tn.x.array[:] = T.x.array[:]
 
-    # Make sure q integral yields positive power
     Q_int = abs(Q_int)
-
-    # Q_lc = 2π Ro * W * ∫ q dt
     Qlc_total = float(2.0 * np.pi * Ro * W * Q_int)
     return Qlc_total

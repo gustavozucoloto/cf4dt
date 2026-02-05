@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import emcee
+from multiprocessing import Pool
 
 from .gp_utils import gp_predict
 
@@ -94,7 +95,16 @@ def calibrate_and_save(
     burn=1500,
     thin=10,
     seed=0,
+    n_jobs=1,  # Number of parallel processes (1=serial)
 ):
+    """
+    Run Bayesian calibration and save posterior samples.
+    
+    Parameters
+    ----------
+    n_jobs : int
+        Number of parallel processes. Set to 1 for serial execution.
+    """
     samples = run_mcmc(
         model_name=model_name,
         data_csv=data_csv,
@@ -104,6 +114,7 @@ def calibrate_and_save(
         burn=burn,
         thin=thin,
         seed=seed,
+        n_jobs=n_jobs,
     )
     np.save(out_path, samples)
     print(f"Saved posterior samples to {out_path}")
