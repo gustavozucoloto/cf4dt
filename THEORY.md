@@ -160,7 +160,7 @@ For any $(W, T_s)$, the posterior distribution of $Q_{lc}$ is approximated by:
 1. Sample $n_{\text{post}} = 400$ parameter vectors from the MCMC chain
 2. For each $\theta^{(j)}$, evaluate the GP: $\mu_j = \mu(W, T_s, \theta^{(j)})$, $\sigma_j = \sigma_{\text{GP}}(W, T_s, \theta^{(j)})$
 3. Draw samples: $Q_j^{(k)} \sim \mathcal{N}(\mu_j, \sigma_j^2)$
-4. Aggregate 95% credible intervals: [$Q_{2.5\%}$, $Q_{\text{median}}$, $Q_{97.5\%}$]
+4. Aggregate 95% credible intervals: [$Q_{0.025}$, $Q_{0.5}$, $Q_{0.975}$]
 
 ### 4.2 Posterior Alpha Distribution
 
