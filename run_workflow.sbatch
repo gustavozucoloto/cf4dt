@@ -66,7 +66,6 @@ echo
 TRUTH_DATA="data/artificial_Qlc_data.csv"
 
 echo "=== Step 1: Generating artificial data -> ${TRUTH_DATA} ==="
-echo "Note: Edit velocity/temperature lists and n_jobs in scripts/generate_artificial_data.py"
 srun --mpi=none $MM python scripts/generate_artificial_data.py --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
 echo
 
@@ -85,8 +84,8 @@ for MODEL in powerlaw exponential logarithmic; do
     --model "$MODEL" \
     --data "$TRUTH_DATA" \
     --out "$GP_FILE" \
-    --n-theta 20 \
-    --subset 32 \
+    --n-theta 40 \
+    --subset 88 \
     --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
   echo
 

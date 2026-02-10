@@ -61,7 +61,4 @@ PY
 echo
 
 micromamba run -p ~/.micromamba/envs/fenicsx \
-  python run_calibration_analysis.py --n-jobs=16
-
-micromamba run -p ~/.micromamba/envs/fenicsx \
   python scripts/verify_gp_emulator_kfold.py --n-theta 10 --subset 20 --kfold 5 --n-jobs 16

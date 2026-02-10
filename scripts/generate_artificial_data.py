@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Generate artificial data with custom velocity and temperature lists."""
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -12,7 +13,14 @@ if str(SRC) not in sys.path:
 from cf4dt.data_generation import generate_artificial_data
 
 
+def parse_args():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--n-jobs", type=int, default=1, help="Number of parallel processes")
+    return p.parse_args()
+
+
 def main():
+    args = parse_args()
     W_mph_list = [0.05, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
     
     Ts_K_list = [80, 100, 120, 140, 160, 180, 200, 220]
@@ -24,7 +32,7 @@ def main():
         W_mph_list=W_mph_list,
         Ts_K_list=Ts_K_list,
         seed_noise=2,
-        sigma_kW=1e-7,
+        sigma_kW=0.1,
         Ro=0.1,
         L=3.7,
         Tm=273.15,
@@ -33,7 +41,7 @@ def main():
         p_grade=3.0,
         num_steps=1000,
         dt_ratio=1.03,
-        n_jobs=1,  # Set to match SLURM_CPUS_PER_TASK for parallel execution
+        n_jobs=args.n_jobs,
     )
 
 
