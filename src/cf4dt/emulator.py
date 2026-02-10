@@ -47,14 +47,19 @@ def sample_theta(n_theta, model_name, seed=0):
     u = lhs(n_theta, 2, seed=seed)
     if model_name == "powerlaw":
         # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
-        # β₁ ∈ [0.5, 1.7]: tight range around Ulamec fit (1.1)
+        # β₁ ∈ [0.1, 0.9]: concave powerlaw (0 < beta1 < 1)
         beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
-        beta1 = 0.5 + 1.2 * u[:, 1]     # β₁ ∈ [0.5, 1.7]
+        beta1 = 0.1 + 0.8 * u[:, 1]     # β₁ ∈ [0.1, 0.9]
     elif model_name == "exponential":
         # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
         # β₁ ∈ [0.002, 0.010]: tight range around Ulamec fit (0.006)
         beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
         beta1 = 0.002 + 0.008 * u[:, 1]   # β₁ ∈ [0.002, 0.010]
+    elif model_name == "logarithmic":
+        # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
+        # β₁ ∈ [0.1, 1.0]: positive slope with concave log shape
+        beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
+        beta1 = 0.1 + 0.9 * u[:, 1]    # β₁ ∈ [0.1, 1.0]
     else:
         raise ValueError(model_name)
     return np.column_stack([beta0, beta1])

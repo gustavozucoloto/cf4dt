@@ -13,19 +13,18 @@ from cf4dt.data_generation import generate_artificial_data
 
 
 def main():
-    W_mph_list = [0.05, 0.5, 2.0, 5.0]
+    W_mph_list = [0.05, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
     
-    Ts_K_list = [80.0, 125.0, 170.0, 215.0, 260.0]
+    Ts_K_list = [80, 100, 120, 140, 160, 180, 200, 220]
     # ==================================================================
     
     # This will create a n_W × n_Ts grid with all combinations
-    # Current: 4 velocities × 5 temperatures = 20 simulation points
     generate_artificial_data(
         out_csv="data/artificial_Qlc_data.csv",
         W_mph_list=W_mph_list,
         Ts_K_list=Ts_K_list,
         seed_noise=2,
-        sigma_kW=1e-7,  # ~10% noise level (signal is ~1e-6 kW)
+        sigma_kW=1e-7,
         Ro=0.1,
         L=3.7,
         Tm=273.15,

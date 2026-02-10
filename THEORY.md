@@ -33,7 +33,7 @@ where:
 
 ### 1.3 Parameterized Models
 
-Two simplified toy models are proposed to approximate the thermal diffusivity:
+Three simplified toy models are proposed to approximate the thermal diffusivity:
 
 **Powerlaw model:**
 $$\alpha(T; \theta) = \exp(\beta_0) \left(\frac{T}{T_0}\right)^{\beta_1}$$
@@ -41,11 +41,13 @@ $$\alpha(T; \theta) = \exp(\beta_0) \left(\frac{T}{T_0}\right)^{\beta_1}$$
 **Exponential model:**
 $$\alpha(T; \theta) = \exp(\beta_0 + \beta_1(T - T_0))$$
 
-where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The prior parameter ranges are tightly informed by matching the Ulamec (2007) model:
+**Logarithmic model:**
+$$\alpha(T; \theta) = \exp(\beta_0)\left(1 + \beta_1\log(T/T_0)\right)$$
+
+where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The parameter ranges are informed by matching the Ulamec (2007) model:
 - Powerlaw: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.5, 1.7]$
 - Exponential: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.002, 0.010]$
-
-These narrow ranges ensure the MCMC search explores only physically plausible regions near the Ulamec approximations.
+- Logarithmic: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.1, 1.0]$
 
 **Figure:** The figure below shows 50 random samples from the prior distributions of both toy models, overlaid with the Ulamec reference alpha(T). Generate it with:
 ```bash
@@ -62,16 +64,16 @@ python scripts/generate_theory_plots.py
 
 A training set is constructed by evaluating the forward model on a Design of Experiments (DoE) grid:
 
-- **Input space**: $(W, T_s, \beta_0, \beta_1) \in \mathcal{D}$
+- **Input space**: $(W, T_s, \beta_0, \beta_1) \in \mathcal{D}$, with $W$ in m/hour
   - $(W, T_s)$ sampled from artificial data (with optional subsetting)
   - $(\beta_0, \beta_1)$ sampled uniformly using Latin Hypercube Sampling (LHS)
   
 - **Output**: $Q_{lc}$ (kW) from solving the PDE for each design point
 
-Default configuration:
-- $n_{\text{design}} = 64$ spatial points (subsampled from full dataset)
-- $n_\theta = 40$ parameter samples (LHS, sampled from tightened bounds)
-- Total training points: $64 \times 40 = 2560$
+Default configuration (workflow):
+- $n_{\text{design}} = 32$ spatial points (subsampled from full dataset)
+- $n_\theta = 20$ parameter samples (LHS)
+- Total training points: $32 \times 20 = 640$
 
 Parameter sampling uses LHS within the tightened bounds to ensure dense coverage in regions explored during calibration.
 
@@ -116,7 +118,7 @@ Given synthetic observations $\{(W_i, T_{s,i}, y_i)\}$ with measurement noise $\
 
 ### 3.2 Prior Distribution
 
-Tight Gaussian priors informed by matching the Ulamec (2007) model:
+Gaussian priors informed by matching the Ulamec (2007) model:
 
 **Powerlaw model:**
 $$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 1.1, 0.3^2)$$
@@ -126,7 +128,20 @@ trun­cated to $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.5, 1.7]$
 $$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 0.006, 0.002^2)$$
 trun­cated to $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.002, 0.010]$
 
-The tightened priors constrain the search to physically plausible regions near the Ulamec approximations.
+**Logarithmic model:**
+$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 0.5, 0.3^2)$$
+trun­cated to $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.1, 1.0]$
+
+The priors constrain the search to physically plausible regions near the Ulamec approximations.
+
+**Why normal priors here?**
+- The parameters are real-valued and centered on Ulamec-fit estimates, so Gaussians capture symmetric uncertainty around those estimates.
+- Truncation enforces physical bounds (e.g., concavity/positivity), while keeping a smooth preference for values near the reference fit.
+- Using the same family across models keeps calibration comparisons consistent.
+
+**Alternative priors (not used here):**
+- **Lognormal** priors are useful for strictly positive, multiplicative-scale parameters. We did not use them because the calibrated parameters are naturally real-valued and centered around Ulamec-fit values, so a normal prior is a simpler and more direct representation of uncertainty.
+- **Beta** priors are appropriate for parameters constrained to $[0,1]$ (e.g., probabilities or proportions). Our parameters are not naturally bounded to $[0,1]$, so a beta prior would require an additional re-parameterization step without clear benefit.
 
 ### 3.3 Likelihood
 
@@ -141,8 +156,8 @@ $$\sigma_\text{total}^2 = \sigma_\text{meas}^2 + \sigma_{\text{GP}}^2(W_i, T_{s,
 
 The posterior is explored using the Affine Invariant Ensemble MCMC sampler (`emcee`):
 
-- **Walkers**: $n_{\text{walkers}} = 32$ (default)
-- **Iterations**: $n_{\text{steps}} = 6000$ (default)
+- **Walkers**: $n_{\text{walkers}} = 32$
+- **Iterations**: $n_{\text{steps}} = 6000$
 - **Burn-in**: 1500 iterations discarded
 - **Thinning**: every 10th sample retained
 
@@ -152,6 +167,11 @@ $$p_0 = \theta_{\text{init}} + \mathcal{N}(0, \Sigma_{\text{init}})$$
 where $\theta_{\text{init}}$ and $\Sigma_{\text{init}}$ are model-dependent:
 - Powerlaw: $\theta_{\text{init}} = (-14, 1.1)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.3^2)$
 - Exponential: $\theta_{\text{init}} = (-14, 0.006)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.002^2)$
+- Logarithmic: $\theta_{\text{init}} = (-14, 0.5)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.3^2)$
+
+Workflow bounds used in calibration:
+- $\beta_0 \in [-14.8, -13.2]$
+- $\beta_1$ per model: powerlaw $[0.4, 1.8]$, exponential $[0.001, 0.012]$, logarithmic $[0.1, 1.0]$
 
 The MCMC sampler supports parallel execution via multiprocessing, with the number of parallel processes controlled by the `n_jobs` parameter.
 
@@ -174,10 +194,17 @@ Similarly, the posterior distribution of the thermal diffusivity function $\alph
 
 $$\alpha^{(j)}(T) = \begin{cases}
 \exp(\beta_0^{(j)}) (T / 200)^{\beta_1^{(j)}} & \text{(powerlaw)} \\
-\exp(\beta_0^{(j)} + \beta_1^{(j)}(T - 200)) & \text{(exponential)}
+\exp(\beta_0^{(j)} + \beta_1^{(j)}(T - 200)) & \text{(exponential)} \\
+\exp(\beta_0^{(j)})\left(1 + \beta_1^{(j)}\log(T/200)\right) & \text{(logarithmic)}
 \end{cases}$$
 
 Credible bands are computed element-wise over the posterior samples.
+
+### 4.3 UQ Scenario Grid (workflow)
+
+The workflow UQ uses a dense linear grid:
+- $W \in [0.05, 5.0]$ m/hour, 50 points (linear spacing)
+- $T_s \in [80, 260]$ K, 30 points (linear spacing)
 
 ---
 
@@ -186,3 +213,5 @@ Credible bands are computed element-wise over the posterior samples.
 - **Ulamec, S.** (2007). Thermal properties and processes in planetary ices. In *Europa* (pp. 427–457). University of Arizona Press.
 - **Rasmussen, C. E., & Williams, C. K. I.** (2006). *Gaussian Processes for Machine Learning*. MIT Press.
 - **Foreman-Mackey, D., et al.** (2013). *emcee*: The MCMC Hammer. *PASP*, 125(925), 306–312.
+- **Gelman, A., et al.** (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press.
+- **Johnson, N. L., Kotz, S., & Balakrishnan, N.** (1994). *Continuous Univariate Distributions, Vol. 1* (2nd ed.). Wiley.

@@ -13,10 +13,12 @@ def _compute_single_point(args):
     """Worker function for parallel data generation."""
     from mpi4py import MPI  # Import inside worker
     
-    i, W, Ts, Ro, L, Tm, Rinf, num_cells, p_grade, num_steps, dt_ratio, n_pts = args
+    i, W_mph, Ts, Ro, L, Tm, Rinf, num_cells, p_grade, num_steps, dt_ratio, n_pts = args
+
+    W_mps = float(W_mph) / 3600.0
     
     Q = compute_Qlc(
-        W=float(W),
+        W=W_mps,
         Ts=float(Ts),
         material_model="ulamec",
         Ro=Ro,
@@ -75,7 +77,7 @@ def generate_artificial_data(
         Number of parallel processes. Set to 1 for serial execution.
         Recommended: number of CPU cores for large datasets.
     """
-    W_all, Ts_all = sample_design(
+    W_mph_all, Ts_all = sample_design(
         W_mph_list=W_mph_list,
         Ts_K_list=Ts_K_list,
         n_Ts=n_Ts,
@@ -85,12 +87,12 @@ def generate_artificial_data(
         W_mph_min=W_mph_min,
         W_mph_max=W_mph_max,
     )
-    n_pts = len(W_all)
+    n_pts = len(W_mph_all)
     Rinf = Ro + float(Rinf_offset)
 
     # Prepare arguments for all evaluations
     args_list = [
-        (i, W_all[i], Ts_all[i], Ro, L, Tm, Rinf, num_cells, p_grade,
+        (i, W_mph_all[i], Ts_all[i], Ro, L, Tm, Rinf, num_cells, p_grade,
          num_steps, dt_ratio, n_pts)
         for i in range(n_pts)
     ]
@@ -117,7 +119,7 @@ def generate_artificial_data(
 
     df = pd.DataFrame(
         {
-            "W_mph": W_all * 3600.0,
+            "W_mph": W_mph_all,
             "Ts_K": Ts_all,
             "Qlc_true_kW": Q_true_W / 1000.0,
             "y_obs_kW": y_obs_kW,

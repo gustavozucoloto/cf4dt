@@ -14,7 +14,7 @@ from cf4dt.emulator import train_and_save_emulator
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--model", choices=["powerlaw", "exponential"], required=True)
+    p.add_argument("--model", choices=["powerlaw", "exponential", "logarithmic"], required=True)
     p.add_argument("--data", default="artificial_Qlc_data.csv", help="Input CSV with W/Ts/y")
     p.add_argument("--out", default="gp_powerlaw.joblib", help="Output GP bundle path")
     p.add_argument("--n-theta", type=int, default=40, help="Number of theta samples")

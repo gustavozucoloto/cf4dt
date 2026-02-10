@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH --job-name=cryobot_dt_debug
+#SBATCH --job-name=cryobot_dt_quick
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
-#SBATCH --time=24:00:00
+#SBATCH --time=00:45:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=5GB
+#SBATCH --mem=4GB
 #SBATCH -A thes2143
 #SBATCH -p c23ms
 
@@ -66,11 +66,10 @@ echo
 TRUTH_DATA="data/artificial_Qlc_data.csv"
 
 echo "=== Step 1: Generating artificial data -> ${TRUTH_DATA} ==="
-echo "Note: Edit velocity/temperature lists and n_jobs in scripts/generate_artificial_data.py"
-srun --mpi=none $MM python scripts/generate_artificial_data.py --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
+srun --mpi=none -n 1 $MM python scripts/generate_artificial_data.py 
 echo
 
-# ---------- STEPS 2-4: loop over both parameterized models ----------
+# ---------- STEPS 2-4: loop over parameterized models ----------
 for MODEL in powerlaw exponential logarithmic; do
   GP_FILE="data/gp_${MODEL}.joblib"
   POST_FILE="data/posterior_${MODEL}.npy"
@@ -85,8 +84,8 @@ for MODEL in powerlaw exponential logarithmic; do
     --model "$MODEL" \
     --data "$TRUTH_DATA" \
     --out "$GP_FILE" \
-    --n-theta 20 \
-    --subset 32 \
+    --n-theta 6 \
+    --subset 12 \
     --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
   echo
 
@@ -106,9 +105,10 @@ for MODEL in powerlaw exponential logarithmic; do
     --data "$TRUTH_DATA" \
     --gp "$GP_FILE" \
     --out "$POST_FILE" \
-    --nwalkers 32 \
-    --nsteps 6000 \
-    --burn 1500 \
+    --nwalkers 16 \
+    --nsteps 1500 \
+    --burn 300 \
+    --thin 5 \
     --beta0-min -14.8 \
     --beta0-max -13.2 \
     --beta1-min "$BETA1_MIN" \
@@ -121,7 +121,8 @@ for MODEL in powerlaw exponential logarithmic; do
     --model "$MODEL" \
     --gp "$GP_FILE" \
     --posterior "$POST_FILE" \
-    --out-prefix "$OUT_PREFIX"
+    --out-prefix "$OUT_PREFIX" \
+    --n-post 100
   echo
 done
 
@@ -131,9 +132,9 @@ echo
 
 echo "=== Step 6: GP emulator k-fold verification ==="
 srun --mpi=none -n 1 $MM python scripts/verify_gp_emulator_kfold.py \
-  --n-theta 10 \
-  --subset 20 \
-  --kfold 5 \
+  --n-theta 6 \
+  --subset 12 \
+  --kfold 3 \
   --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
 echo
 

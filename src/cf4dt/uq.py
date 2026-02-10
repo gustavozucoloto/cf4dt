@@ -17,19 +17,18 @@ def uq_maps(model_name, gp_path, posterior_path, out_prefix="uq", n_post=400, se
         idx = rng.choice(len(samples), size=n_post, replace=False)
         samples = samples[idx]
 
-    W_mph_grid = np.logspace(np.log10(0.05), np.log10(5.0), 30)
-    W_grid = W_mph_grid / 3600.0
+    W_mph_grid = np.linspace(0.05, 5.0, 50)
     Ts_grid = np.linspace(80, 260, 30)
 
-    Q_med = np.zeros((len(Ts_grid), len(W_grid)))
+    Q_med = np.zeros((len(Ts_grid), len(W_mph_grid)))
     Q_lo = np.zeros_like(Q_med)
     Q_hi = np.zeros_like(Q_med)
 
     for iT, Ts in enumerate(Ts_grid):
-        for iW, W in enumerate(W_grid):
+        for iW, W_mph in enumerate(W_mph_grid):
             X = np.column_stack(
                 [
-                    np.full(len(samples), W),
+                    np.full(len(samples), W_mph),
                     np.full(len(samples), Ts),
                     samples[:, 0],
                     samples[:, 1],
@@ -46,7 +45,7 @@ def uq_maps(model_name, gp_path, posterior_path, out_prefix="uq", n_post=400, se
         iT = np.argmin(np.abs(Ts_grid - Ts_pick))
         plt.fill_between(W_mph_grid, Q_lo[iT], Q_hi[iT], alpha=0.2)
         plt.plot(W_mph_grid, Q_med[iT], label=f"Ts={Ts_grid[iT]:.0f} K")
-    plt.xscale("log")
+    plt.xscale("linear")
     plt.xlabel("W (m/hour)")
     plt.ylabel("Q_lc (kW)")
     plt.title(f"Posterior predictive Q_lc bands ({model_name})")

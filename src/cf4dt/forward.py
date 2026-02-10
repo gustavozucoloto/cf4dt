@@ -9,10 +9,11 @@ This module solves the transient heat conduction problem in thermal diffusivity 
     Q_lc = 2π Ro * W * ∫_0^{t_end} q(t) dt
     q(t) = (-alpha ∇T)·n at r = Ro
 
-Supports three material models:
+Supports four material models:
     - "ulamec": Uses Ulamec (2007) correlations, computes alpha(T) = k(T)/(rho(T)*cp(T))
     - "powerlaw": Toy model alpha(T;theta) = exp(beta0) * (T/T0)^beta1
     - "exponential": Toy model alpha(T;theta) = exp(beta0 + beta1*(T - T0))
+    - "logarithmic": Toy model alpha(T;theta) = exp(beta0) * (1 + beta1*log(T/T0))
 
 Key features:
 - Direct calibration of thermal diffusivity (eliminates rho, cp uncertainty)
@@ -75,6 +76,7 @@ def alpha_model_ufl(T, theta, model: str = "powerlaw", T0: float = 200.0):
 
     powerlaw:    alpha = exp(beta0) * (T/T0)^beta1
     exponential: alpha = exp(beta0 + beta1*(T - T0))
+    logarithmic: alpha = exp(beta0) * (1 + beta1*log(T/T0))
     """
     beta0, beta1 = theta
     beta0 = PETSc.ScalarType(beta0)
@@ -85,6 +87,8 @@ def alpha_model_ufl(T, theta, model: str = "powerlaw", T0: float = 200.0):
         return ufl.exp(beta0) * (T / T0) ** beta1
     if model == "exponential":
         return ufl.exp(beta0 + beta1 * (T - T0))
+    if model == "logarithmic":
+        return ufl.exp(beta0) * (1.0 + beta1 * ufl.ln(T / T0))
     raise ValueError(f"Unknown alpha model: {model}")
 
 
@@ -96,6 +100,7 @@ def alpha_model(T, theta, model: str = "powerlaw", T0: float = 200.0):
 
     powerlaw:    alpha = exp(beta0) * (T/T0)^beta1
     exponential: alpha = exp(beta0 + beta1*(T - T0))
+    logarithmic: alpha = exp(beta0) * (1 + beta1*log(T/T0))
     """
     beta0, beta1 = theta
 
@@ -103,6 +108,8 @@ def alpha_model(T, theta, model: str = "powerlaw", T0: float = 200.0):
         return np.exp(beta0) * (T / T0) ** beta1
     if model == "exponential":
         return np.exp(beta0 + beta1 * (T - T0))
+    if model == "logarithmic":
+        return np.exp(beta0) * (1.0 + beta1 * np.log(T / T0))
     raise ValueError(f"Unknown alpha model: {model}")
 
 
@@ -129,7 +136,7 @@ def get_alpha_ufl(material_model: str, T, theta=None):
     Parameters
     ----------
     material_model : str
-        "ulamec", "powerlaw", or "exponential"
+        "ulamec", "powerlaw", "exponential", or "logarithmic"
     T : dolfinx.fem.Function or UFL expression
         Temperature field
     theta : tuple[float,float] or None
@@ -145,11 +152,12 @@ def get_alpha_ufl(material_model: str, T, theta=None):
     - "ulamec": alpha = k/(rho*cp) using Ulamec (2007) correlations
     - "powerlaw": alpha = exp(beta0) * (T/T0)^beta1
     - "exponential": alpha = exp(beta0 + beta1*(T - T0))
+    - "logarithmic": alpha = exp(beta0) * (1 + beta1*log(T/T0))
     """
     if material_model == "ulamec":
         return alpha_ulamec_ufl(T)
     
-    if material_model in ("powerlaw", "exponential"):
+    if material_model in ("powerlaw", "exponential", "logarithmic"):
         if theta is None:
             raise ValueError(f"theta is required for material_model='{material_model}'")
         return alpha_model_ufl(T, theta, model=material_model)

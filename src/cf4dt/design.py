@@ -15,7 +15,7 @@ def sample_design(
     **kwargs  # Accept but ignore legacy parameters like seed, n_lhs
 ):
     """
-    Return (W_all [m/s], Ts_all [K]) as grid.
+    Return (W_mph_all [m/h], Ts_all [K]) as grid.
     
     Parameters
     ----------
@@ -41,12 +41,10 @@ def sample_design(
         logWmax = np.log10(W_mph_max)
         W_mph_grid = np.logspace(logWmin, logWmax, n_W)
     
-    W_grid = W_mph_grid / 3600.0  # Convert from meters/hour to m/s
-    
     # Create meshgrid
-    W_mesh, Ts_mesh = np.meshgrid(W_grid, Ts_grid)
+    W_mesh, Ts_mesh = np.meshgrid(W_mph_grid, Ts_grid)
     
     # Flatten to get all combinations
-    W_all = W_mesh.ravel()
+    W_mph_all = W_mesh.ravel()
     Ts_all = Ts_mesh.ravel()
-    return W_all, Ts_all
+    return W_mph_all, Ts_all

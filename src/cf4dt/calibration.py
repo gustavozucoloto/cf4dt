@@ -9,23 +9,58 @@ from multiprocessing import Pool
 from .gp_utils import gp_predict
 
 
-def log_prior(theta, model_name):
+DEFAULT_BOUNDS = {
+    "powerlaw": {
+        "beta0": (-14.5, -13.5),
+        "beta1": (0.1, 0.9),
+        "mu": (-14.0, 0.6),
+        "sigma": (0.3, 0.2),
+    },
+    "exponential": {
+        "beta0": (-14.5, -13.5),
+        "beta1": (0.002, 0.010),
+        "mu": (-14.0, 0.006),
+        "sigma": (0.3, 0.002),
+    },
+    "logarithmic": {
+        "beta0": (-14.5, -13.5),
+        "beta1": (0.1, 1.0),
+        "mu": (-14.0, 0.5),
+        "sigma": (0.3, 0.3),
+    },
+}
+
+
+def log_prior(theta, model_name, beta0_bounds=None, beta1_bounds=None):
     beta0, beta1 = theta
+    defaults = DEFAULT_BOUNDS[model_name]
+    beta0_min, beta0_max = beta0_bounds or defaults["beta0"]
+    beta1_min, beta1_max = beta1_bounds or defaults["beta1"]
+    mu0, mu1 = defaults["mu"]
+    sig0, sig1 = defaults["sigma"]
 
     if model_name == "powerlaw":
-        # beta0 ~ N(-14.0, 0.3^2), beta1 ~ N(1.1, 0.3^2) - tightened around Ulamec fit
-        if not (-14.5 <= beta0 <= -13.5 and 0.5 <= beta1 <= 1.7):
+        # beta0 ~ N(-14.0, 0.3^2), beta1 ~ N(1.1, 0.3^2)
+        if not (beta0_min <= beta0 <= beta0_max and beta1_min <= beta1 <= beta1_max):
             return -np.inf
-        lp_beta0 = -0.5 * ((beta0 + 14.0) / 0.3) ** 2
-        lp_beta1 = -0.5 * ((beta1 - 1.1) / 0.3) ** 2
+        lp_beta0 = -0.5 * ((beta0 - mu0) / sig0) ** 2
+        lp_beta1 = -0.5 * ((beta1 - mu1) / sig1) ** 2
         return lp_beta0 + lp_beta1
 
     if model_name == "exponential":
-        # beta0 ~ N(-14.0, 0.3^2), beta1 ~ N(0.006, 0.002^2) - tightened around Ulamec fit
-        if not (-14.5 <= beta0 <= -13.5 and 0.002 <= beta1 <= 0.010):
+        # beta0 ~ N(-14.0, 0.3^2), beta1 ~ N(0.006, 0.002^2)
+        if not (beta0_min <= beta0 <= beta0_max and beta1_min <= beta1 <= beta1_max):
             return -np.inf
-        lp_beta0 = -0.5 * ((beta0 + 14.0) / 0.3) ** 2
-        lp_beta1 = -0.5 * ((beta1 - 0.006) / 0.002) ** 2
+        lp_beta0 = -0.5 * ((beta0 - mu0) / sig0) ** 2
+        lp_beta1 = -0.5 * ((beta1 - mu1) / sig1) ** 2
+        return lp_beta0 + lp_beta1
+
+    if model_name == "logarithmic":
+        # beta0 ~ N(-14.0, 0.3^2), beta1 ~ N(0.5, 0.3^2)
+        if not (beta0_min <= beta0 <= beta0_max and beta1_min <= beta1 <= beta1_max):
+            return -np.inf
+        lp_beta0 = -0.5 * ((beta0 - mu0) / sig0) ** 2
+        lp_beta1 = -0.5 * ((beta1 - mu1) / sig1) ** 2
         return lp_beta0 + lp_beta1
 
     raise ValueError(model_name)
@@ -41,8 +76,8 @@ def log_likelihood(theta, bundle, W, Ts, y_obs, sigma_meas):
     return -0.5 * np.sum((r**2) / var + np.log(2 * np.pi * var))
 
 
-def log_posterior(theta, bundle, model_name, W, Ts, y_obs, sigma_meas):
-    lp = log_prior(theta, model_name)
+def log_posterior(theta, bundle, model_name, W, Ts, y_obs, sigma_meas, beta0_bounds, beta1_bounds):
+    lp = log_prior(theta, model_name, beta0_bounds=beta0_bounds, beta1_bounds=beta1_bounds)
     if not np.isfinite(lp):
         return -np.inf
     return lp + log_likelihood(theta, bundle, W, Ts, y_obs, sigma_meas)
@@ -57,6 +92,8 @@ def run_mcmc(
     burn=1500,
     thin=10,
     seed=0,
+    beta0_bounds=None,
+    beta1_bounds=None,
     n_jobs=1,  # Number of parallel processes (1=serial)
 ):
     df = pd.read_csv(data_csv)
@@ -74,13 +111,16 @@ def run_mcmc(
     if model_name == "powerlaw":
         init = np.array([-14.0, 1.1])
         spread = np.array([0.6, 0.4])
-    else:
+    elif model_name == "exponential":
         init = np.array([-14.0, 0.006])
         spread = np.array([0.6, 0.003])
+    else:
+        init = np.array([-14.0, 0.5])
+        spread = np.array([0.6, 0.3])
 
     p0 = init + spread * rng.standard_normal(size=(nwalkers, ndim))
 
-    log_prob_args = (bundle, model_name, W, Ts, y_obs, sigma_meas)
+    log_prob_args = (bundle, model_name, W, Ts, y_obs, sigma_meas, beta0_bounds, beta1_bounds)
 
     # Use Pool for parallel walkers if n_jobs > 1
     if n_jobs > 1:
@@ -117,6 +157,8 @@ def calibrate_and_save(
     burn=1500,
     thin=10,
     seed=0,
+    beta0_bounds=None,
+    beta1_bounds=None,
     n_jobs=1,  # Number of parallel processes (1=serial)
 ):
     """
@@ -136,6 +178,8 @@ def calibrate_and_save(
         burn=burn,
         thin=thin,
         seed=seed,
+        beta0_bounds=beta0_bounds,
+        beta1_bounds=beta1_bounds,
         n_jobs=n_jobs,
     )
     np.save(out_path, samples)
