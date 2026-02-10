@@ -45,9 +45,9 @@ $$\alpha(T; \theta) = \exp(\beta_0 + \beta_1(T - T_0))$$
 $$\alpha(T; \theta) = \exp(\beta_0)\left(1 + \beta_1\log(T/T_0)\right)$$
 
 where $\theta = (\beta_0, \beta_1)$ are calibration parameters and $T_0 = 200$ K is a reference temperature. The parameter ranges are informed by matching the Ulamec (2007) model:
-- Powerlaw: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.5, 1.7]$
+- Powerlaw: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.1, 0.9]$ (concave for $0 < \beta_1 < 1$)
 - Exponential: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.002, 0.010]$
-- Logarithmic: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.1, 1.0]$
+- Logarithmic: $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.1, 1.0]$ (concave for $\beta_1 > 0$)
 
 **Figure:** The figure below shows 50 random samples from the prior distributions of both toy models, overlaid with the Ulamec reference alpha(T). Generate it with:
 ```bash
@@ -121,8 +121,8 @@ Given synthetic observations $\{(W_i, T_{s,i}, y_i)\}$ with measurement noise $\
 Gaussian priors informed by matching the Ulamec (2007) model:
 
 **Powerlaw model:**
-$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 1.1, 0.3^2)$$
-trun­cated to $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.5, 1.7]$
+$$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 0.6, 0.2^2)$$
+trun­cated to $\beta_0 \in [-14.5, -13.5]$, $\beta_1 \in [0.1, 0.9]$
 
 **Exponential model:**
 $$p(\theta) = \mathcal{N}(\beta_0; -14, 0.3^2) \times \mathcal{N}(\beta_1; 0.006, 0.002^2)$$
@@ -165,13 +165,13 @@ Initial positions are drawn from:
 $$p_0 = \theta_{\text{init}} + \mathcal{N}(0, \Sigma_{\text{init}})$$
 
 where $\theta_{\text{init}}$ and $\Sigma_{\text{init}}$ are model-dependent:
-- Powerlaw: $\theta_{\text{init}} = (-14, 1.1)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.3^2)$
+- Powerlaw: $\theta_{\text{init}} = (-14, 0.6)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.2^2)$
 - Exponential: $\theta_{\text{init}} = (-14, 0.006)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.002^2)$
 - Logarithmic: $\theta_{\text{init}} = (-14, 0.5)$, $\Sigma_{\text{init}} = \text{diag}(0.3^2, 0.3^2)$
 
 Workflow bounds used in calibration:
 - $\beta_0 \in [-14.8, -13.2]$
-- $\beta_1$ per model: powerlaw $[0.4, 1.8]$, exponential $[0.001, 0.012]$, logarithmic $[0.1, 1.0]$
+- $\beta_1$ per model: powerlaw $[0.1, 0.9]$, exponential $[0.001, 0.012]$, logarithmic $[0.1, 1.0]$
 
 The MCMC sampler supports parallel execution via multiprocessing, with the number of parallel processes controlled by the `n_jobs` parameter.
 
@@ -184,9 +184,10 @@ The MCMC sampler supports parallel execution via multiprocessing, with the numbe
 For any $(W, T_s)$, the posterior distribution of $Q_{lc}$ is approximated by:
 
 1. Sample $n_{\text{post}} = 400$ parameter vectors from the MCMC chain
-2. For each $\theta^{(j)}$, evaluate the GP: $\mu_j = \mu(W, T_s, \theta^{(j)})$, $\sigma_j = \sigma_{\text{GP}}(W, T_s, \theta^{(j)})$
-3. Draw samples: $Q_j^{(k)} \sim \mathcal{N}(\mu_j, \sigma_j^2)$
-4. Aggregate 95% credible intervals: [$Q_{0.025}$, $Q_{0.5}$, $Q_{0.975}$]
+2. For each $\theta^{(j)}$, evaluate the GP mean: $\mu_j = \mu(W, T_s, \theta^{(j)})$
+3. Aggregate 95% credible intervals from the empirical distribution of $\{\mu_j\}$: [$Q_{0.025}$, $Q_{0.5}$, $Q_{0.975}$]
+
+This reflects parameter uncertainty propagated through the GP surrogate (without adding GP predictive noise).
 
 ### 4.2 Posterior Alpha Distribution
 
@@ -199,6 +200,10 @@ $$\alpha^{(j)}(T) = \begin{cases}
 \end{cases}$$
 
 Credible bands are computed element-wise over the posterior samples.
+
+### 4.4 PCE-Based UQ (optional)
+
+As an alternative to direct GP evaluation, a Polynomial Chaos Expansion (PCE) can be fit to the GP outputs as a low-order surrogate in $(\beta_0, \beta_1)$. For two parameters and low polynomial degree, the number of required training evaluations is modest (tens of runs), and the resulting surrogate enables fast credible band computation over the full $(W, T_s)$ grid.
 
 ### 4.3 UQ Scenario Grid (workflow)
 

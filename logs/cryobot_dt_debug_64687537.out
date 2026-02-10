@@ -48,3 +48,7 @@ Saved GP emulator: data/gp_powerlaw.joblib
 Kernel: 10**2 * RBF(length_scale=[1.75, 4.09, 11.5, 29.9]) + WhiteKernel(noise_level=1e-08)
 
 === Step 3: Bayesian calibration (emcee) -> data/posterior_powerlaw.npy ===
+Saved posterior samples to data/posterior_powerlaw.npy
+powerlaw posterior mean: [-14.10994      1.09470662] std: [0.54298942 0.32195703]
+
+=== Step 4: UQ plots -> outputs/uq_powerlaw* ===
