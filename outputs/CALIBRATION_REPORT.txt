@@ -1,0 +1,45 @@
+
+======================================================================
+CALIBRATION QUALITY EVALUATION - FINAL REPORT
+======================================================================
+
+EMULATOR QUALITY:
+
+  Powerlaw:
+    • R²:                1.000000
+    • RMSE:              0.0002 kW
+    • MAE:               0.0001 kW
+    • 95% Coverage:      99.8%
+
+  Exponential:
+    • R²:                1.000000
+    • RMSE:              0.0002 kW
+    • MAE:               0.0001 kW
+    • 95% Coverage:      99.8%
+
+    Logarithmic:
+        • R²:                1.000000
+        • RMSE:              0.0001 kW
+        • MAE:               0.0001 kW
+        • 95% Coverage:      100.0%
+
+    ALPHA MODEL COMPARISON:
+
+  Mean Absolute Error vs. Ulamec:
+    • Powerlaw:         0.000000
+    • Exponential:      0.000000
+        • Logarithmic:      0.000000
+
+UNCERTAINTY QUANTIFICATION:
+
+  95% Credible Interval Width (median):
+    • Powerlaw:         0.0291 kW
+    • Exponential:      0.0478 kW
+        • Logarithmic:      0.0388 kW
+
+  Relative Uncertainty (Coefficient of Variation):
+    • Powerlaw:         0.19%
+    • Exponential:      0.35%
+        • Logarithmic:      0.28%
+
+======================================================================

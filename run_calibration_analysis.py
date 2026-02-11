@@ -24,6 +24,10 @@ from cf4dt.gp_utils import gp_predict
 from cf4dt.forward import alpha_model, k_ice_ulamec, rho_ice_ulamec, cp_ice_ulamec
 from cf4dt.emulator import build_training_set
 
+
+def save_svg(fig_path_base):
+    plt.savefig(f"{fig_path_base}.svg", transparent=True, bbox_inches="tight")
+
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--n-jobs", type=int, default=16, help="Number of parallel processes (1=serial)")
@@ -147,9 +151,9 @@ ax.legend()
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
-plt.savefig("outputs/01_gp_vs_data.png", dpi=200, bbox_inches='tight')
+save_svg("outputs/01_gp_vs_data")
 plt.close()
-print("Saved: outputs/01_gp_vs_data.png")
+print("Saved: outputs/01_gp_vs_data.svg")
 
 # ============================================================================
 # 4. Calculate GP Metrics
@@ -225,9 +229,9 @@ ax = axes[1]
 err_pl_rel = np.abs(alpha_pl_vals - alpha_ulamec_vals) / (alpha_ulamec_vals + 1e-10) * 100
 err_exp_rel = np.abs(alpha_exp_vals - alpha_ulamec_vals) / (alpha_ulamec_vals + 1e-10) * 100
 err_log_rel = np.abs(alpha_log_vals - alpha_ulamec_vals) / (alpha_ulamec_vals + 1e-10) * 100
-ax.semilogy(T_range, err_pl_rel, 'C0--', lw=2, label="Powerlaw")
-ax.semilogy(T_range, err_exp_rel, 'C2-.', lw=2, label="Exponential")
-ax.semilogy(T_range, err_log_rel, 'C3:', lw=2, label="Logarithmic")
+ax.plot(T_range, err_pl_rel, 'C0--', lw=2, label="Powerlaw")
+ax.plot(T_range, err_exp_rel, 'C2-.', lw=2, label="Exponential")
+ax.plot(T_range, err_log_rel, 'C3:', lw=2, label="Logarithmic")
 ax.set_xlabel("Temperature (K)")
 ax.set_ylabel("Relative Error (%)")
 ax.set_title("Relative Error vs. Ulamec")
@@ -235,9 +239,9 @@ ax.legend(fontsize=10)
 ax.grid(True, alpha=0.3, which='both')
 
 plt.tight_layout()
-plt.savefig("outputs/02_alpha_model_comparison.png", dpi=200, bbox_inches='tight')
+save_svg("outputs/02_alpha_model_comparison")
 plt.close()
-print("Saved: outputs/02_alpha_model_comparison.png")
+print("Saved: outputs/02_alpha_model_comparison.svg")
 
 # ============================================================================
 # 6. UQ Analysis
@@ -391,9 +395,9 @@ ax.grid(True, alpha=0.3)
 axes[1, 2].axis('off')
 
 plt.tight_layout()
-plt.savefig("outputs/03_uq_diagnostics.png", dpi=200, bbox_inches='tight')
+save_svg("outputs/03_uq_diagnostics")
 plt.close()
-print("Saved: outputs/03_uq_diagnostics.png")
+print("Saved: outputs/03_uq_diagnostics.svg")
 
 # ============================================================================
 # 8. Summary Report

@@ -1,0 +1,222 @@
+HOME_REAL:      /rwthfs/rz/cluster/home/kq336027
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+Job started on: n23m0058.hpc.itc.rwth-aachen.de
+Project dir:    /rwthfs/rz/cluster/home/kq336027/cf4dt
+CPUs per task:  16
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+
+=== Sanity check: Python + MPI vendor ===
+Python OK
+MPI vendor: ('MPICH', (4, 3, 2))
+MPI library: MPICH Version:      4.3.2
+COMM_WORLD size: 1
+
+============================================================
+MODEL: powerlaw
+============================================================
+=== Step 4: UQ plots -> outputs/uq_powerlaw* ===
+
+============================================================
+MODEL: exponential
+============================================================
+=== Step 4: UQ plots -> outputs/uq_exponential* ===
+
+============================================================
+MODEL: logarithmic
+============================================================
+=== Step 4: UQ plots -> outputs/uq_logarithmic* ===
+
+=== Step 5: Calibration quality analysis ===
+======================================================================
+CALIBRATION QUALITY EVALUATION
+Using 16 parallel processes
+======================================================================
+
+[1/8] Loading data...
+Artificial data shape: (88, 10)
+Posterior powerlaw shape: (10115, 2)
+Posterior exponential shape: (14400, 2)
+Posterior logarithmic shape: (14400, 2)
+
+[2/8] Loading GP emulators...
+[powerlaw] Pre-compiling FEniCS forms to avoid race conditions...
+[powerlaw] Building training set with 16 parallel processes...
+  [powerlaw] Progress: 50/640
+  [powerlaw] Progress: 100/640
+  [powerlaw] Progress: 150/640
+  [powerlaw] Progress: 200/640
+  [powerlaw] Progress: 300/640
+  [powerlaw] Progress: 250/640
+  [powerlaw] Progress: 350/640
+  [powerlaw] Progress: 400/640
+  [powerlaw] Progress: 450/640
+  [powerlaw] Progress: 500/640
+  [powerlaw] Progress: 550/640
+  [powerlaw] Progress: 600/640
+[exponential] Pre-compiling FEniCS forms to avoid race conditions...
+[exponential] Building training set with 16 parallel processes...
+  [exponential] Progress: 50/640
+  [exponential] Progress: 100/640
+  [exponential] Progress: 150/640
+  [exponential] Progress: 200/640
+  [exponential] Progress: 250/640
+  [exponential] Progress: 300/640
+  [exponential] Progress: 350/640
+  [exponential] Progress: 400/640
+  [exponential] Progress: 450/640
+  [exponential] Progress: 500/640
+  [exponential] Progress: 550/640
+  [exponential] Progress: 600/640
+[logarithmic] Pre-compiling FEniCS forms to avoid race conditions...
+[logarithmic] Building training set with 16 parallel processes...
+  [logarithmic] Progress: 50/640
+  [logarithmic] Progress: 150/640
+  [logarithmic] Progress: 100/640
+  [logarithmic] Progress: 200/640
+  [logarithmic] Progress: 250/640
+  [logarithmic] Progress: 300/640
+  [logarithmic] Progress: 350/640
+  [logarithmic] Progress: 400/640
+  [logarithmic] Progress: 450/640
+  [logarithmic] Progress: 500/640
+  [logarithmic] Progress: 550/640
+  [logarithmic] Progress: 600/640
+Powerlaw GP: 640 training points
+Exponential GP: 640 training points
+Logarithmic GP: 640 training points
+
+[3/8] Plotting GP vs. artificial data...
+Saved: outputs/01_gp_vs_data.svg
+
+[4/8] Computing emulator metrics...
+
+Powerlaw:
+    RMSE: 0.0002 kW
+    R²:   1.000000
+    Coverage 95%: 99.8%
+
+Exponential:
+    RMSE: 0.0002 kW
+    R²:   1.000000
+    Coverage 95%: 99.8%
+
+Logarithmic:
+    RMSE: 0.0001 kW
+    R²:   1.000000
+    Coverage 95%: 100.0%
+
+[5/8] Comparing α(T) models...
+Saved: outputs/02_alpha_model_comparison.svg
+
+[6/8] Generating UQ predictions...
+Generated predictions for 50×50 scenarios
+
+[7/8] Plotting UQ diagnostics...
+Saved: outputs/03_uq_diagnostics.svg
+
+[8/8] Generating summary report...
+
+======================================================================
+CALIBRATION QUALITY EVALUATION - FINAL REPORT
+======================================================================
+
+EMULATOR QUALITY:
+
+  Powerlaw:
+    • R²:                1.000000
+    • RMSE:              0.0002 kW
+    • MAE:               0.0001 kW
+    • 95% Coverage:      99.8%
+
+  Exponential:
+    • R²:                1.000000
+    • RMSE:              0.0002 kW
+    • MAE:               0.0001 kW
+    • 95% Coverage:      99.8%
+
+    Logarithmic:
+        • R²:                1.000000
+        • RMSE:              0.0001 kW
+        • MAE:               0.0001 kW
+        • 95% Coverage:      100.0%
+
+    ALPHA MODEL COMPARISON:
+
+  Mean Absolute Error vs. Ulamec:
+    • Powerlaw:         0.000000
+    • Exponential:      0.000000
+        • Logarithmic:      0.000000
+
+UNCERTAINTY QUANTIFICATION:
+
+  95% Credible Interval Width (median):
+    • Powerlaw:         0.0291 kW
+    • Exponential:      0.0478 kW
+        • Logarithmic:      0.0388 kW
+
+  Relative Uncertainty (Coefficient of Variation):
+    • Powerlaw:         0.19%
+    • Exponential:      0.35%
+        • Logarithmic:      0.28%
+
+======================================================================
+
+Saved: outputs/CALIBRATION_REPORT.txt
+
+ANALYSIS COMPLETE!
+
+=== Step 6: GP emulator k-fold verification ===
+[powerlaw] Pre-compiling FEniCS forms to avoid race conditions...
+[powerlaw] Building training set with 16 parallel processes...
+  [powerlaw] Progress: 50/200
+  [powerlaw] Progress: 100/200
+  [powerlaw] Progress: 150/200
+  [powerlaw] Progress: 200/200
+[exponential] Pre-compiling FEniCS forms to avoid race conditions...
+[exponential] Building training set with 16 parallel processes...
+  [exponential] Progress: 50/200
+  [exponential] Progress: 100/200
+  [exponential] Progress: 150/200
+  [exponential] Progress: 200/200
+[logarithmic] Pre-compiling FEniCS forms to avoid race conditions...
+[logarithmic] Building training set with 16 parallel processes...
+  [logarithmic] Progress: 50/200
+  [logarithmic] Progress: 100/200
+  [logarithmic] Progress: 150/200
+  [logarithmic] Progress: 200/200
+======================================================================
+GP EMULATOR K-FOLD REPORT
+kfold=5, n_theta=10, subset=20, seed=1
+======================================================================
+
+MODEL: powerlaw
+  Fold 01: RMSE=0.0036 kW, MAE=0.0022 kW, R2=1.000000, 95%Cov=85.0%
+  Fold 02: RMSE=0.0033 kW, MAE=0.0023 kW, R2=1.000000, 95%Cov=90.0%
+  Fold 03: RMSE=0.0027 kW, MAE=0.0017 kW, R2=1.000000, 95%Cov=92.5%
+  Fold 04: RMSE=0.0071 kW, MAE=0.0038 kW, R2=0.999999, 95%Cov=70.0%
+  Fold 05: RMSE=0.0028 kW, MAE=0.0018 kW, R2=1.000000, 95%Cov=87.5%
+  Summary (mean +/- std):
+    RMSE=0.0039 +/- 0.0016 kW, MAE=0.0024 +/- 0.0008 kW, R2=1.000000 +/- 0.000000, 95%Cov=85.0% +/- 7.9%
+
+MODEL: exponential
+  Fold 01: RMSE=0.0050 kW, MAE=0.0033 kW, R2=0.999999, 95%Cov=82.5%
+  Fold 02: RMSE=0.0053 kW, MAE=0.0037 kW, R2=0.999999, 95%Cov=87.5%
+  Fold 03: RMSE=0.0050 kW, MAE=0.0028 kW, R2=0.999999, 95%Cov=87.5%
+  Fold 04: RMSE=0.0127 kW, MAE=0.0060 kW, R2=0.999997, 95%Cov=67.5%
+  Fold 05: RMSE=0.0050 kW, MAE=0.0030 kW, R2=0.999999, 95%Cov=85.0%
+  Summary (mean +/- std):
+    RMSE=0.0066 +/- 0.0030 kW, MAE=0.0038 +/- 0.0011 kW, R2=0.999999 +/- 0.000001, 95%Cov=82.0% +/- 7.5%
+
+MODEL: logarithmic
+  Fold 01: RMSE=0.0060 kW, MAE=0.0038 kW, R2=0.999999, 95%Cov=87.5%
+  Fold 02: RMSE=0.0030 kW, MAE=0.0022 kW, R2=1.000000, 95%Cov=87.5%
+  Fold 03: RMSE=0.0036 kW, MAE=0.0024 kW, R2=0.999999, 95%Cov=97.5%
+  Fold 04: RMSE=0.0059 kW, MAE=0.0038 kW, R2=0.999999, 95%Cov=77.5%
+  Fold 05: RMSE=0.0043 kW, MAE=0.0024 kW, R2=0.999999, 95%Cov=87.5%
+  Summary (mean +/- std):
+    RMSE=0.0046 +/- 0.0012 kW, MAE=0.0029 +/- 0.0007 kW, R2=0.999999 +/- 0.000000, 95%Cov=87.5% +/- 6.3%
+
+DONE
+Saved: outputs/04_gp_kfold_report.txt
+
+All done.
