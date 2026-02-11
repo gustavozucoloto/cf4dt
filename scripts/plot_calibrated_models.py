@@ -48,6 +48,7 @@ ax1.fill_between(T,
 ax1.set_xlabel('Temperature (K)', fontsize=12)
 ax1.set_ylabel('Thermal Diffusivity α (10⁻⁶ m²/s)', fontsize=12)
 ax1.set_title(f'Powerlaw Model\nβ₀={theta_powerlaw_mean[0]:.3f}, β₁={theta_powerlaw_mean[1]:.3f}', fontsize=13)
+ax1.set_ylim(-1, 5)
 ax1.legend(fontsize=10)
 ax1.grid(True, alpha=0.3)
 

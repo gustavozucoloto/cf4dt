@@ -34,7 +34,7 @@ def parse_args():
     p.add_argument("--subset", type=int, default=20)
     p.add_argument("--kfold", type=int, default=5)
     p.add_argument("--seed", type=int, default=1)
-    p.add_argument("--n-jobs", type=int, default=1)
+    p.add_argument("--n-jobs", type=int, default=16)
     p.add_argument("--out", default="outputs/04_gp_kfold_report.txt")
     return p.parse_args()
 
@@ -51,6 +51,7 @@ def compute_metrics(y_true, mu, std):
 def main():
     args = parse_args()
     models = [m.strip() for m in args.models.split(",") if m.strip()]
+
 
     df = pd.read_csv(args.data)
 

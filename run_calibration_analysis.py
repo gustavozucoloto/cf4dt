@@ -26,7 +26,7 @@ from cf4dt.emulator import build_training_set
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--n-jobs", type=int, default=1, help="Number of parallel processes (1=serial)")
+    p.add_argument("--n-jobs", type=int, default=16, help="Number of parallel processes (1=serial)")
     return p.parse_args()
 
 args = parse_args()

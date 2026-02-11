@@ -74,3 +74,7 @@
 Saved GP emulator: data/gp_logarithmic.joblib
 Kernel: 10**2 * RBF(length_scale=[0.946, 3.92, 11.4, 20.8]) + WhiteKernel(noise_level=1e-08)
 === Step 3: Bayesian calibration (emcee) -> data/posterior_logarithmic.npy ===
+Saved posterior samples to data/posterior_logarithmic.npy
+logarithmic posterior mean: [-13.95825511   0.8601087 ] std: [0.00179697 0.02087539]
+=== Step 4: UQ plots -> outputs/uq_logarithmic* ===
+All done for logarithmic.

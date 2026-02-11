@@ -74,3 +74,7 @@
 Saved GP emulator: data/gp_exponential.joblib
 Kernel: 10**2 * RBF(length_scale=[0.939, 4.79, 10.5, 16.8]) + WhiteKernel(noise_level=1e-08)
 === Step 3: Bayesian calibration (emcee) -> data/posterior_exponential.npy ===
+Saved posterior samples to data/posterior_exponential.npy
+exponential posterior mean: [-1.40169032e+01  5.03353930e-03] std: [0.00350912 0.00013826]
+=== Step 4: UQ plots -> outputs/uq_exponential* ===
+All done for exponential.
