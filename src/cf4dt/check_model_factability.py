@@ -60,7 +60,33 @@ BetaPair = Tuple[float, float]
 
 @dataclass
 class SamplingConfig:
-	"""Configuration for parameter-space sampling."""
+	"""Configuration for parameter-space sampling.
+
+	Attributes
+	----------
+	model_name : {"powerlaw", "exponential"}
+		Which toy alpha(T) model to use.
+	beta0_range, beta1_range : (float, float)
+		Global search box for (beta0, beta1). For the adaptive random walk
+		strategy (sampler="walk"), you can deliberately choose a larger
+		box than the theory defaults.
+	alpha_range : (float, float)
+		Acceptable range for alpha(T) across the chosen temperature range.
+	T_range : (float, float)
+		Temperature range [K] over which feasibility is checked.
+	n_T : int
+		Number of temperature points for evaluating alpha(T).
+	n_samples : int
+		Maximum number of parameter samples / random-walk steps.
+	sampler : {"lhs", "uniform", "walk"}
+		Sampling strategy: Latin Hypercube, independent uniform, or
+		adaptive random walk.
+	require_increasing : bool
+		If True, only accept parameters where alpha(T) is monotonically
+		increasing on the specified temperature grid.
+	random_state : int or None
+		Random seed for reproducibility.
+	"""
 
 	model_name: str  # "powerlaw" or "exponential"
 	beta0_range: Tuple[float, float]
@@ -69,7 +95,8 @@ class SamplingConfig:
 	T_range: Tuple[float, float] = (80.0, 273.15)
 	n_T: int = 100
 	n_samples: int = 2000
-	sampler: str = "lhs"  # or "uniform"
+	sampler: str = "lhs"  # "lhs", "uniform", or "walk"
+	require_increasing: bool = False
 	random_state: int | None = None
 
 
@@ -124,14 +151,21 @@ def _is_feasible(
 	T_max: float,
 	n_T: int,
 	T0: float = 200.0,
-) -> bool:
-	"""Check if alpha(T; beta) stays in [alpha_min, alpha_max] on [T_min, T_max]."""
+) -> tuple[bool, np.ndarray]:
+	"""Evaluate feasibility based on alpha-range and return alpha(T).
+
+	Returns a tuple ``(ok, alpha_vals)`` where ``ok`` indicates whether
+	alpha(T) stays in [alpha_min, alpha_max] on [T_min, T_max], and
+	``alpha_vals`` is the array of evaluated diffusivities, which callers
+	can further analyse (e.g. for monotonicity).
+	"""
 
 	T = np.linspace(T_min, T_max, n_T)
 	alpha_vals = alpha_model(T, (beta0, beta1), model=model_name, T0=T0)
 	amin = float(np.min(alpha_vals))
 	amax = float(np.max(alpha_vals))
-	return (amin >= alpha_min) and (amax <= alpha_max)
+	ok = (amin >= alpha_min) and (amax <= alpha_max)
+	return ok, alpha_vals
 
 
 def sample_parameter_space(config: SamplingConfig) -> Dict[str, np.ndarray]:
@@ -152,14 +186,24 @@ def sample_parameter_space(config: SamplingConfig) -> Dict[str, np.ndarray]:
 		- "feasible": boolean mask of shape (n_samples,)
 	"""
 
+	# Adaptive random-walk strategy: explore from a larger box and refine
+	# around feasible points with shorter steps and a preferred direction.
+	if config.sampler == "walk":
+		return adaptive_random_walk(config)
+
+	# Default strategies: Latin Hypercube or independent uniform sampling
 	betas = _sample_betas(config)
 	feasible_mask = np.zeros(config.n_samples, dtype=bool)
 
 	alpha_min, alpha_max = config.alpha_range
 	T_min, T_max = config.T_range
+	require_inc = config.require_increasing
+	tol = 0.0
+	require_inc = config.require_increasing
+	tol = 0.0  # can be relaxed if numerical noise appears
 
 	for i, (b0, b1) in enumerate(betas):
-		feasible_mask[i] = _is_feasible(
+		ok, alpha_vals = _is_feasible(
 			b0,
 			b1,
 			model_name=config.model_name,
@@ -169,21 +213,31 @@ def sample_parameter_space(config: SamplingConfig) -> Dict[str, np.ndarray]:
 			T_max=T_max,
 			n_T=config.n_T,
 		)
+		if ok and require_inc:
+			# Enforce non-decreasing alpha(T); adjust tol if needed.
+			ok = np.all(np.diff(alpha_vals) >= -tol)
+		feasible_mask[i] = ok
 
 	return {"betas": betas, "feasible": feasible_mask}
 
 
-def estimate_feasible_box(config: SamplingConfig) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+def estimate_feasible_box(
+	betas: np.ndarray,
+	mask: np.ndarray,
+) -> Tuple[Tuple[float, float], Tuple[float, float]]:
 	"""Estimate a bounding box for (beta0, beta1) from feasible samples.
+
+	Parameters
+	----------
+	betas : ndarray, shape (n_samples, 2)
+		All sampled (beta0, beta1) pairs.
+	mask : ndarray[bool], shape (n_samples,)
+		Boolean mask indicating which samples are feasible.
 
 	Returns
 	-------
 	(beta0_min, beta0_max), (beta1_min, beta1_max)
 	"""
-
-	result = sample_parameter_space(config)
-	betas = result["betas"]
-	mask = result["feasible"]
 
 	if not np.any(mask):
 		raise RuntimeError("No feasible samples found for the given configuration.")
@@ -195,6 +249,107 @@ def estimate_feasible_box(config: SamplingConfig) -> Tuple[Tuple[float, float], 
 	beta1_max = float(np.max(feasible_betas[:, 1]))
 
 	return (beta0_min, beta0_max), (beta1_min, beta1_max)
+
+
+def adaptive_random_walk(config: SamplingConfig) -> Dict[str, np.ndarray]:
+	"""Adaptive random walk in (beta0, beta1) space.
+
+	This explores a *larger* parameter box (given by beta0_range and
+	beta1_range) using a two-scale random walk:
+
+	1. Take larger steps while parameters are infeasible to search broadly.
+	2. Once a feasible point is found, switch to shorter steps and use the
+	   direction between consecutive feasible points as a preferred
+	   search direction, with a bit of random perturbation.
+
+	The result is a set of samples that cluster around feasible regions
+	without requiring tight theory-based priors.
+	"""
+
+	rng = np.random.default_rng(config.random_state)
+
+	betas = np.zeros((config.n_samples, 2), dtype=float)
+	feasible_mask = np.zeros(config.n_samples, dtype=bool)
+
+	beta0_min, beta0_max = config.beta0_range
+	beta1_min, beta1_max = config.beta1_range
+
+	# Step sizes are defined as fractions of the global box size.
+	beta0_span = beta0_max - beta0_min
+	beta1_span = beta1_max - beta1_min
+
+	large_step0 = 0.25 * beta0_span
+	large_step1 = 0.25 * beta1_span
+	small_step0 = 0.05 * beta0_span
+	small_step1 = 0.05 * beta1_span
+
+	alpha_min, alpha_max = config.alpha_range
+	T_min, T_max = config.T_range
+	require_inc = config.require_increasing
+	tol = 0.0
+
+	current: np.ndarray | None = None
+	last_feasible_point: np.ndarray | None = None
+	last_direction = np.zeros(2, dtype=float)
+	last_was_feasible = False
+
+	for i in range(config.n_samples):
+		# Occasionally restart from a completely random point to avoid
+		# getting stuck in a single region.
+		if current is None or rng.random() < 0.1:
+			b0 = rng.uniform(beta0_min, beta0_max)
+			b1 = rng.uniform(beta1_min, beta1_max)
+			proposal = np.array([b0, b1], dtype=float)
+		else:
+			if last_was_feasible:
+				# Local refinement: small step plus a drift along the
+				# previously observed feasible direction.
+				step0 = small_step0
+				step1 = small_step1
+				drift_scale = 0.5
+				direction = last_direction * drift_scale
+			else:
+				# Coarse exploration while infeasible.
+				step0 = large_step0
+				step1 = large_step1
+				direction = np.zeros(2, dtype=float)
+
+			proposal = current + direction + np.array(
+				[rng.normal(scale=step0), rng.normal(scale=step1)],
+				dtype=float,
+			)
+
+		# Keep proposal inside the global box.
+		proposal[0] = float(np.clip(proposal[0], beta0_min, beta0_max))
+		proposal[1] = float(np.clip(proposal[1], beta1_min, beta1_max))
+
+		b0, b1 = float(proposal[0]), float(proposal[1])
+
+		is_ok, alpha_vals = _is_feasible(
+			b0,
+			b1,
+			model_name=config.model_name,
+			alpha_min=alpha_min,
+			alpha_max=alpha_max,
+			T_min=T_min,
+			T_max=T_max,
+			n_T=config.n_T,
+		)
+		if is_ok and require_inc:
+			is_ok = np.all(np.diff(alpha_vals) >= -tol)
+
+		betas[i, 0] = b0
+		betas[i, 1] = b1
+		feasible_mask[i] = is_ok
+		current = proposal
+
+		if is_ok:
+			if last_feasible_point is not None:
+				last_direction = current - last_feasible_point
+			last_feasible_point = current.copy()
+		last_was_feasible = bool(is_ok)
+
+	return {"betas": betas, "feasible": feasible_mask}
 
 
 def _default_beta_ranges(model_name: str) -> Tuple[Tuple[float, float], Tuple[float, float]]:
@@ -237,11 +392,22 @@ def _parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
 	parser.add_argument("--n-samples", type=int, default=2000, help="Number of parameter samples.")
 	parser.add_argument(
 		"--sampler",
-		choices=["lhs", "uniform"],
+		choices=["lhs", "uniform", "walk"],
 		default="lhs",
-		help="Sampling strategy (Latin Hypercube or uniform).",
+		help=(
+			"Sampling strategy: Latin Hypercube (lhs), independent uniform, "
+			"or adaptive random walk (walk)."
+		),
 	)
 	parser.add_argument("--seed", type=int, default=None, help="Random seed.")
+	parser.add_argument(
+		"--require-increasing",
+		action="store_true",
+		help=(
+			"If set, only accept parameters where alpha(T) is monotonically "
+			"increasing over the chosen temperature range."
+		),
+	)
 	parser.add_argument(
 		"--plot",
 		action="store_true",
@@ -278,6 +444,7 @@ def main(argv: Iterable[str] | None = None) -> None:
 		n_T=args.n_T,
 		n_samples=args.n_samples,
 		sampler=args.sampler,
+		require_increasing=args.require_increasing,
 		random_state=args.seed,
 	)
 
@@ -290,6 +457,7 @@ def main(argv: Iterable[str] | None = None) -> None:
 	print(f"  n_T         : {config.n_T}")
 	print(f"  n_samples   : {config.n_samples}")
 	print(f"  sampler     : {config.sampler}")
+	print(f"  increasing  : {config.require_increasing}")
 
 	result = sample_parameter_space(config)
 	betas = result["betas"]
@@ -303,7 +471,7 @@ def main(argv: Iterable[str] | None = None) -> None:
 		print("No feasible samples found. Consider widening the alpha range or beta ranges.")
 		return
 
-	(beta0_min, beta0_max), (beta1_min, beta1_max) = estimate_feasible_box(config)
+	(beta0_min, beta0_max), (beta1_min, beta1_max) = estimate_feasible_box(betas, mask)
 
 	print("\nEstimated feasible parameter box (from feasible samples):")
 	print(f"  beta0 in [{beta0_min:.4f}, {beta0_max:.4f}]")
