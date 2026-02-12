@@ -1,0 +1,8 @@
+=== Calibration+UQ: model=logarithmic, kernel=rbf, kind=medium ===
+GP:   data/gp_logarithmic_rbf.joblib
+POST: data/posterior_logarithmic_rbf_medium.npy
+Saved posterior samples to data/posterior_logarithmic_rbf_medium.npy
+logarithmic posterior mean: [-12.66785574  -3.48379762] std: [1.06949367 0.29635406]
+num samples saved: 4800
+fraction outside GP theta box: 0.0
+DONE: logarithmic rbf medium

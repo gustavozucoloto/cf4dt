@@ -1,0 +1,8 @@
+=== Calibration+UQ: model=exponential, kernel=matern_2p5, kind=medium ===
+GP:   data/gp_exponential_matern25.joblib
+POST: data/posterior_exponential_matern25_medium.npy
+Saved posterior samples to data/posterior_exponential_matern25_medium.npy
+exponential posterior mean: [-1.29921047e+01 -1.15252554e-02] std: [1.04495531e-03 4.13117003e-05]
+num samples saved: 4800
+fraction outside GP theta box: 0.0
+DONE: exponential matern25 medium

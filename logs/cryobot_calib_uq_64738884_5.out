@@ -1,0 +1,8 @@
+=== Calibration+UQ: model=logarithmic, kernel=matern_2p5, kind=quick ===
+GP:   data/gp_logarithmic_matern25.joblib
+POST: data/posterior_logarithmic_matern25_quick.npy
+Saved posterior samples to data/posterior_logarithmic_matern25_quick.npy
+logarithmic posterior mean: [-12.70734919  -3.36437524] std: [0.9544661  0.29863561]
+num samples saved: 640
+fraction outside GP theta box: 0.0
+DONE: logarithmic matern25 quick

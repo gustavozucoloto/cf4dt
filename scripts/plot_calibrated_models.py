@@ -14,9 +14,9 @@ if str(SRC) not in sys.path:
 from cf4dt.forward import alpha_model, k_ice_ulamec, rho_ice_ulamec, cp_ice_ulamec
 
 # Load posterior samples
-posterior_powerlaw = np.load(ROOT / "data/posterior_powerlaw_clean.npy")
-posterior_exponential = np.load(ROOT / "data/posterior_exponential.npy")
-posterior_logarithmic = np.load(ROOT / "data/posterior_logarithmic.npy")
+posterior_powerlaw = np.load(ROOT / "data/posterior_powerlaw_quick.npy")
+posterior_exponential = np.load(ROOT / "data/posterior_exponential_quick.npy")
+posterior_logarithmic = np.load(ROOT / "data/posterior_logarithmic_quick.npy")
 
 # Get mean calibrated parameters
 theta_powerlaw_mean = posterior_powerlaw.mean(axis=0)
@@ -37,10 +37,25 @@ alpha_exponential_calib = alpha_model(T, theta=theta_exponential_mean, model="ex
 alpha_logarithmic_calib = alpha_model(T, theta=theta_logarithmic_mean, model="logarithmic")
 
 # Sample from posterior for uncertainty bands
-n_samples = 10000
-idx_powerlaw = np.random.choice(len(posterior_powerlaw), n_samples, replace=False)
-idx_exponential = np.random.choice(len(posterior_exponential), n_samples, replace=False)
-idx_logarithmic = np.random.choice(len(posterior_logarithmic), n_samples, replace=False)
+requested_n_samples = 10000
+
+
+def _sample_indices(posterior: np.ndarray, requested: int, label: str) -> np.ndarray:
+    n_pop = int(len(posterior))
+    if n_pop <= 0:
+        raise ValueError(f"Posterior for {label} is empty; cannot sample for uncertainty bands")
+    n = min(int(requested), n_pop)
+    if n < requested:
+        print(
+            f"[WARN] {label} posterior has only {n_pop} samples; "
+            f"using n_samples={n} instead of requested {requested}."
+        )
+    return np.random.choice(n_pop, n, replace=False)
+
+
+idx_powerlaw = _sample_indices(posterior_powerlaw, requested_n_samples, "powerlaw")
+idx_exponential = _sample_indices(posterior_exponential, requested_n_samples, "exponential")
+idx_logarithmic = _sample_indices(posterior_logarithmic, requested_n_samples, "logarithmic")
 
 alpha_powerlaw_samples = np.array([
     alpha_model(T, theta=posterior_powerlaw[i], model="powerlaw")

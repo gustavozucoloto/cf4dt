@@ -1,0 +1,161 @@
+[INFO] Module GCC/14.3.0 loaded.
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+Exception ignored in: <function NonlinearProblem.__del__ at 0x14b7f9e51ee0>
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1361, in __del__
+    lambda obj: obj is not None, (self._snes, self._A, self._b, self._x, self._P_mat)
+                                  ^^^^^^^^^^
+AttributeError: 'NonlinearProblem' object has no attribute '_snes'
+[0]PETSC ERROR: ------------------------------------------------------------------------
+[0]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[0]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[0]PETSC ERROR: or see https://petsc.org/release/faq/#valgrind and https://petsc.org/release/faq/
+[0]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[0]PETSC ERROR: to get more information on the crash.
+Abort(59) on node 0 (rank 0 in comm 0): application called MPI_Abort(MPI_COMM_WORLD, 59) - process 0
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/ffcx/codegeneration/jit.py", line 97, in get_cached_module
+    with open(c_filename, "x"):
+         ^^^^^^^^^^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/rwthfs/rz/cluster/home/kq336027/cf4dt/.cache/xdg_cache_64738665_2/fenics/libffcx_forms_eba44d5807e21907807c331a1f26de813e00c377.c'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/multiprocessing/pool.py", line 48, in mapstar
+    return list(map(*args))
+           ^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/src/cf4dt/emulator.py", line 20, in _compute_single_training_point
+    Q = compute_Qlc(
+        ^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/src/cf4dt/forward.py", line 358, in compute_Qlc
+    problem = NonlinearProblem(
+              ^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/petsc.py", line 1239, in __init__
+    self._F = _create_form(
+              ^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/forms.py", line 449, in form
+    return _create_form(form)
+           ^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/forms.py", line 441, in _create_form
+    return _form(form)
+           ^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/fem/forms.py", line 361, in _form
+    ufcx_form, module, code = jit.ffcx_jit(
+                              ^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/jit.py", line 60, in mpi_jit
+    return local_jit(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/dolfinx/jit.py", line 215, in ffcx_jit
+    r = ffcx.codegeneration.jit.compile_forms([ufl_object], options=p_ffcx, **p_jit)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/ffcx/codegeneration/jit.py", line 207, in compile_forms
+    obj, mod = get_cached_module(module_name, form_names, cache_dir, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/site-packages/ffcx/codegeneration/jit.py", line 122, in get_cached_module
+    raise TimeoutError(
+TimeoutError: JIT compilation timed out, probably due to a failed previous compile. Try cleaning cache (e.g. remove /rwthfs/rz/cluster/home/kq336027/cf4dt/.cache/xdg_cache_64738665_2/fenics/libffcx_forms_eba44d5807e21907807c331a1f26de813e00c377.c) or increase timeout option.
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/scripts/build_gp_emulator.py", line 49, in <module>
+    main()
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/scripts/build_gp_emulator.py", line 35, in main
+    train_and_save_emulator(
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/src/cf4dt/emulator.py", line 207, in train_and_save_emulator
+    X, y = build_training_set(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/src/cf4dt/emulator.py", line 116, in build_training_set
+    results = pool.map(_compute_single_training_point, args_list)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/multiprocessing/pool.py", line 367, in map
+    return self._map_async(func, iterable, mapstar, chunksize).get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/rwthfs/rz/cluster/home/kq336027/.micromamba/envs/fenicsx/lib/python3.11/multiprocessing/pool.py", line 774, in get
+    raise self._value
+TimeoutError: JIT compilation timed out, probably due to a failed previous compile. Try cleaning cache (e.g. remove /rwthfs/rz/cluster/home/kq336027/cf4dt/.cache/xdg_cache_64738665_2/fenics/libffcx_forms_eba44d5807e21907807c331a1f26de813e00c377.c) or increase timeout option.
+srun: error: n23m0096: task 0: Exited with exit code 1

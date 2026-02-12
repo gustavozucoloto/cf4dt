@@ -1,0 +1,3 @@
+[INFO] Module GCC/14.3.0 loaded.
+/rwthfs/rz/cluster/home/kq336027/cf4dt/scripts/analyze_posteriors.py:170: UserWarning: The figure layout has changed to tight
+  plt.tight_layout()

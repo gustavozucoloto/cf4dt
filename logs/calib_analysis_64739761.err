@@ -1,0 +1,17 @@
+[INFO] Module GCC/14.3.0 loaded.
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/scripts/analyze_posteriors.py", line 271, in <module>
+    main()
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/scripts/analyze_posteriors.py", line 260, in main
+    make_2x2_contraction_plot(model, samples, out_contr)
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/scripts/analyze_posteriors.py", line 166, in make_2x2_contraction_plot
+    fig.legend(handles, labels, loc="best", ncol=len(labels), frameon=True)
+  File "/home/kq336027/.local/lib/python3.11/site-packages/matplotlib/figure.py", line 1137, in legend
+    l = mlegend.Legend(self, handles, labels, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/kq336027/.local/lib/python3.11/site-packages/matplotlib/legend.py", line 553, in __init__
+    self.set_loc(loc)
+  File "/home/kq336027/.local/lib/python3.11/site-packages/matplotlib/legend.py", line 692, in set_loc
+    raise ValueError(
+ValueError: Automatic legend placement (loc='best') not implemented for figure legend
+srun: error: n23m0385: task 0: Exited with exit code 1

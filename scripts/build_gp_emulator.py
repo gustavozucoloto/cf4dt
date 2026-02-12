@@ -17,24 +17,16 @@ def parse_args():
     p.add_argument("--model", choices=["powerlaw", "exponential", "logarithmic"], required=True)
     p.add_argument("--data", default="artificial_Qlc_data.csv", help="Input CSV with W/Ts/y")
     p.add_argument("--out", default="gp_powerlaw.joblib", help="Output GP bundle path")
+    p.add_argument(
+        "--kernel",
+        default="rbf",
+        choices=["rbf", "matern_2p5"],
+        help="Base kernel for the GP (RBF or Matern nu=2.5).",
+    )
     p.add_argument("--n-theta", type=int, default=40, help="Number of theta samples")
     p.add_argument("--subset", type=int, default=64, help="Number of design points to subsample")
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--n-jobs", type=int, default=1, help="Number of parallel processes (1=serial)")
-    p.add_argument(
-        "--white-noise-level",
-        type=float,
-        default=1e-5,
-        help="Initial WhiteKernel noise_level (in standardized y-space).",
-    )
-    p.add_argument(
-        "--white-noise-bounds",
-        type=float,
-        nargs=2,
-        default=(1e-8, 1e-1),
-        metavar=("MIN", "MAX"),
-        help="WhiteKernel noise_level_bounds MIN MAX (in standardized y-space).",
-    )
     return p.parse_args()
 
 
@@ -49,8 +41,7 @@ def main():
         seed=args.seed,
         solver_kwargs={},
         n_jobs=args.n_jobs,
-        white_noise_level=args.white_noise_level,
-        white_noise_bounds=tuple(args.white_noise_bounds),
+        base_kernel=args.kernel,
     )
 
 

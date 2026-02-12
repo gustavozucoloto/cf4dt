@@ -1,0 +1,8 @@
+=== Calibration+UQ: model=exponential, kernel=rbf, kind=quick ===
+GP:   data/gp_exponential_rbf.joblib
+POST: data/posterior_exponential_rbf_quick.npy
+Saved posterior samples to data/posterior_exponential_rbf_quick.npy
+exponential posterior mean: [-1.29920255e+01 -1.15219209e-02] std: [1.04375359e-03 4.32323002e-05]
+num samples saved: 640
+fraction outside GP theta box: 0.0
+DONE: exponential rbf quick

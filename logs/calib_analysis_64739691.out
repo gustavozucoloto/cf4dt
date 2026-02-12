@@ -1,0 +1,34 @@
+[OK] posterior_exponential_matern25_medium.npy
+     -> figures/posterior_exponential_matern25_medium__2x2_contraction.png
+     -> figures/posterior_exponential_matern25_medium__corr_scatter.png
+[OK] posterior_exponential_matern25_quick.npy
+     -> figures/posterior_exponential_matern25_quick__2x2_contraction.png
+     -> figures/posterior_exponential_matern25_quick__corr_scatter.png
+[OK] posterior_exponential_rbf_medium.npy
+     -> figures/posterior_exponential_rbf_medium__2x2_contraction.png
+     -> figures/posterior_exponential_rbf_medium__corr_scatter.png
+[OK] posterior_exponential_rbf_quick.npy
+     -> figures/posterior_exponential_rbf_quick__2x2_contraction.png
+     -> figures/posterior_exponential_rbf_quick__corr_scatter.png
+[OK] posterior_logarithmic_matern25_medium.npy
+     -> figures/posterior_logarithmic_matern25_medium__2x2_contraction.png
+     -> figures/posterior_logarithmic_matern25_medium__corr_scatter.png
+[OK] posterior_logarithmic_matern25_quick.npy
+     -> figures/posterior_logarithmic_matern25_quick__2x2_contraction.png
+     -> figures/posterior_logarithmic_matern25_quick__corr_scatter.png
+[OK] posterior_logarithmic_rbf_medium.npy
+     -> figures/posterior_logarithmic_rbf_medium__2x2_contraction.png
+     -> figures/posterior_logarithmic_rbf_medium__corr_scatter.png
+[OK] posterior_logarithmic_rbf_quick.npy
+     -> figures/posterior_logarithmic_rbf_quick__2x2_contraction.png
+     -> figures/posterior_logarithmic_rbf_quick__corr_scatter.png
+[OK] posterior_powerlaw_matern25_quick.npy
+     -> figures/posterior_powerlaw_matern25_quick__2x2_contraction.png
+     -> figures/posterior_powerlaw_matern25_quick__corr_scatter.png
+[OK] posterior_powerlaw_rbf_medium.npy
+     -> figures/posterior_powerlaw_rbf_medium__2x2_contraction.png
+     -> figures/posterior_powerlaw_rbf_medium__corr_scatter.png
+[OK] posterior_powerlaw_rbf_quick.npy
+     -> figures/posterior_powerlaw_rbf_quick__2x2_contraction.png
+     -> figures/posterior_powerlaw_rbf_quick__corr_scatter.png
+Done.

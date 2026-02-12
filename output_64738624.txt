@@ -1,0 +1,11 @@
+Submitting GP training array (6 tasks, max 6 in flight)...
+sbatch: [I] Please note that Slurm might not be 100% stable yet.
+sbatch: [I] We will be continue to fix issues as we encounter them.
+sbatch: [I] We thank you for your patience.
+TRAIN_JOBID=64738626
+Submitting calibration+UQ array (12 tasks, max 12 in flight), dependent on training...
+sbatch: [I] Please note that Slurm might not be 100% stable yet.
+sbatch: [I] We will be continue to fix issues as we encounter them.
+sbatch: [I] We thank you for your patience.
+CALIB_JOBID=64738627
+Done. Monitor with: squeue -u kq336027

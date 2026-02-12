@@ -1,0 +1,16 @@
+======================================================================
+GP EMULATOR K-FOLD REPORT
+kfold=5, n_theta=10, subset=20, seed=1
+white_noise_level=0.0001, white_noise_bounds=(1e-08, 0.1)
+======================================================================
+
+MODEL: logarithmic
+  Fold 01: RMSE=0.9506 kW, MAE=0.5252 kW, R2=0.995254, 95%Cov=95.0%
+  Fold 02: RMSE=0.8289 kW, MAE=0.5910 kW, R2=0.997913, 95%Cov=85.0%
+  Fold 03: RMSE=0.6813 kW, MAE=0.4033 kW, R2=0.979258, 95%Cov=97.5%
+  Fold 04: RMSE=1.1189 kW, MAE=0.7680 kW, R2=0.996682, 95%Cov=87.5%
+  Fold 05: RMSE=0.5172 kW, MAE=0.3590 kW, R2=0.996288, 95%Cov=95.0%
+  Summary (mean +/- std):
+    RMSE=0.8194 +/- 0.2085 kW, MAE=0.5293 +/- 0.1454 kW, R2=0.993079 +/- 0.006963, 95%Cov=92.0% +/- 4.8%
+
+DONE

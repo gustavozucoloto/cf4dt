@@ -35,6 +35,12 @@ def parse_args():
     p.add_argument("--kfold", type=int, default=5)
     p.add_argument("--seed", type=int, default=1)
     p.add_argument("--n-jobs", type=int, default=16)
+    p.add_argument(
+        "--kernel",
+        default="rbf",
+        choices=["rbf", "matern_2p5"],
+        help="Base kernel for the GP (RBF or Matern nu=2.5).",
+    )
     p.add_argument("--out", default="outputs/04_gp_kfold_report.txt")
     return p.parse_args()
 
@@ -59,6 +65,7 @@ def main():
     lines.append("=" * 70)
     lines.append("GP EMULATOR K-FOLD REPORT")
     lines.append(f"kfold={args.kfold}, n_theta={args.n_theta}, subset={args.subset}, seed={args.seed}")
+    lines.append(f"kernel={args.kernel}")
     lines.append("=" * 70)
 
     for model_name in models:
@@ -85,7 +92,24 @@ def main():
             X_train, y_train = X[train_idx], y[train_idx]
             X_test, y_test = X[test_idx], y[test_idx]
 
-            gp, xscaler, yscaler = fit_gp(X_train, y_train)
+            gp, xscaler, yscaler = fit_gp(
+                X_train,
+                y_train,
+                base_kernel=args.kernel,
+            )
+
+            # Extract fitted hyperparameters for interpretability.
+            # Kernel structure from cf4dt.emulator.fit_gp:
+            #   (ConstantKernel * (RBF|Matern)) + WhiteKernel
+            fitted_noise = float(getattr(getattr(gp.kernel_, "k2", None), "noise_level", np.nan))
+            fitted_length_scales = getattr(getattr(getattr(gp.kernel_, "k1", None), "k2", None), "length_scale", None)
+            if fitted_length_scales is None:
+                ls_min = ls_max = float("nan")
+            else:
+                ls = np.asarray(fitted_length_scales, dtype=float).ravel()
+                ls_min = float(np.min(ls))
+                ls_max = float(np.max(ls))
+
             bundle = dict(gp=gp, xscaler=xscaler, yscaler=yscaler)
             mu, std = gp_predict(bundle, X_test)
 
@@ -95,6 +119,9 @@ def main():
             lines.append(
                 f"  Fold {fold_idx:02d}: RMSE={rmse:.4f} kW, MAE={mae:.4f} kW, "
                 f"R2={r2:.6f}, 95%Cov={coverage:.1%}"
+            )
+            lines.append(
+                f"           fit: white_noise={fitted_noise:.3e}, length_scales=[{ls_min:.3e}, {ls_max:.3e}]"
             )
 
         metrics = np.array(fold_metrics)

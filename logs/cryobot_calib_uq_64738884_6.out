@@ -1,0 +1,8 @@
+=== Calibration+UQ: model=powerlaw, kernel=rbf, kind=medium ===
+GP:   data/gp_powerlaw_rbf.joblib
+POST: data/posterior_powerlaw_rbf_medium.npy
+Saved posterior samples to data/posterior_powerlaw_rbf_medium.npy
+powerlaw posterior mean: [-13.05205515  -1.95690577] std: [0.00111759 0.00632281]
+num samples saved: 4800
+fraction outside GP theta box: 0.0
+DONE: powerlaw rbf medium

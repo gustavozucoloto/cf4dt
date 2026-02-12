@@ -1,0 +1,5 @@
+[INFO] Module GCC/14.3.0 loaded.
+usage: analyze_posteriors.py [-h] [--indir INDIR] [--outdir OUTDIR]
+                             [--pattern PATTERN]
+analyze_posteriors.py: error: unrecognized arguments: --data_dir data
+srun: error: n23m0385: task 0: Exited with exit code 2

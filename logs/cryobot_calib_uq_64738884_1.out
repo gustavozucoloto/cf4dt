@@ -1,0 +1,8 @@
+=== Calibration+UQ: model=powerlaw, kernel=matern_2p5, kind=quick ===
+GP:   data/gp_powerlaw_matern25.joblib
+POST: data/posterior_powerlaw_matern25_quick.npy
+Saved posterior samples to data/posterior_powerlaw_matern25_quick.npy
+powerlaw posterior mean: [-13.0520906   -1.95643763] std: [0.00115581 0.0064344 ]
+num samples saved: 640
+fraction outside GP theta box: 0.0
+DONE: powerlaw matern25 quick

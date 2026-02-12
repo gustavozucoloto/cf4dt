@@ -1,0 +1,7 @@
+[INFO] Module GCC/14.3.0 loaded.
+Traceback (most recent call last):
+  File "/rwthfs/rz/cluster/home/kq336027/cf4dt/scripts/analyze_posteriors.py", line 26, in <module>
+    plt.rcParams.update({'font.size': 18})  # Increase global font size
+    ^^^
+NameError: name 'plt' is not defined
+srun: error: r23m0195: task 0: Exited with exit code 1

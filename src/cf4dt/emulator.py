@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, WhiteKernel, ConstantKernel
+from sklearn.gaussian_process.kernels import RBF, Matern, WhiteKernel, ConstantKernel
 from sklearn.preprocessing import StandardScaler
 from multiprocessing import Pool
 import joblib
@@ -130,8 +130,9 @@ def build_training_set(
 def fit_gp(
     X,
     y,
-    white_noise_level=1e-5,
+    white_noise_level=1e-4,
     white_noise_bounds=(1e-8, 1e-1),
+    base_kernel="rbf",
 ):
     xscaler = StandardScaler()
     yscaler = StandardScaler()
@@ -145,10 +146,27 @@ def fit_gp(
     if not (np.isfinite(white_noise_level) and white_noise_level > 0):
         raise ValueError(f"Invalid white_noise_level={white_noise_level!r}")
 
-    kernel = ConstantKernel(1.0, (1e-2, 1e2)) * RBF(
-        length_scale=np.ones(X.shape[1]),
-        length_scale_bounds=(1e-2, 1e2),
-    ) + WhiteKernel(noise_level=float(white_noise_level), noise_level_bounds=(float(wn_lo), float(wn_hi)))
+    base_kernel = str(base_kernel).lower().strip()
+    if base_kernel in {"rbf", "se", "squared_exponential"}:
+        base = RBF(
+            length_scale=np.ones(X.shape[1]),
+            length_scale_bounds=(1e-2, 1e2),
+        )
+    elif base_kernel in {"matern_2p5", "matern25", "matern_25", "matern", "matern2p5"}:
+        base = Matern(
+            length_scale=np.ones(X.shape[1]),
+            length_scale_bounds=(1e-2, 1e2),
+            nu=2.5,
+        )
+    else:
+        raise ValueError(
+            "Unknown base_kernel=%r (expected 'rbf' or 'matern_2p5')" % (base_kernel,)
+        )
+
+    kernel = ConstantKernel(1.0, (1e-2, 1e2)) * base + WhiteKernel(
+        noise_level=float(white_noise_level),
+        noise_level_bounds=(float(wn_lo), float(wn_hi)),
+    )
 
     gp = GaussianProcessRegressor(
         kernel=kernel,
@@ -169,8 +187,9 @@ def train_and_save_emulator(
     use_subset_points=64,
     solver_kwargs=None,
     n_jobs=1,  # Number of parallel processes (1=serial)
-    white_noise_level=1e-5,
+    white_noise_level=1e-4,
     white_noise_bounds=(1e-8, 1e-1),
+    base_kernel="rbf",
 ):
     """
     Train GP emulator with optional parallel execution.
@@ -200,9 +219,10 @@ def train_and_save_emulator(
         y,
         white_noise_level=white_noise_level,
         white_noise_bounds=white_noise_bounds,
+        base_kernel=base_kernel,
     )
 
-    bundle = dict(gp=gp, xscaler=xscaler, yscaler=yscaler, model=model_name)
+    bundle = dict(gp=gp, xscaler=xscaler, yscaler=yscaler, model=model_name, base_kernel=base_kernel)
     joblib.dump(bundle, out_path)
     print(f"Saved GP emulator: {out_path}")
     print("Kernel:", gp.kernel_)

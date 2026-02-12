@@ -1,0 +1,19 @@
+
+=== Found posteriors ===
+Total analyzed: 6
+
+--- exponential (sorted by std_beta0+std_beta1) ---
+posterior_exponential_matern25_quick.npy       N=   640  std=(0.00097,4.07e-05)  corr=+0.500  outBox=0.0%
+posterior_exponential_rbf_quick.npy            N=   640  std=(0.00104,4.32e-05)  corr=+0.605  outBox=0.0%
+
+--- logarithmic (sorted by std_beta0+std_beta1) ---
+posterior_logarithmic_matern25_quick.npy       N=   640  std=(0.954,0.299)  corr=+0.546  outBox=0.0%
+posterior_logarithmic_rbf_quick.npy            N=   640  std=(0.958,0.303)  corr=-0.169  outBox=0.0%
+
+--- powerlaw (sorted by std_beta0+std_beta1) ---
+posterior_powerlaw_rbf_quick.npy               N=   640  std=(0.00104,0.00586)  corr=+0.588  outBox=0.0%
+posterior_powerlaw_matern25_quick.npy          N=   640  std=(0.00116,0.00643)  corr=+0.669  outBox=0.0%
+
+Wrote:
+  outputs/analysis_out/summary.csv
+  outputs/analysis_out/plots/<plots>.png

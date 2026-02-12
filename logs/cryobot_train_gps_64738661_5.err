@@ -1,0 +1,3 @@
+[INFO] Module GCC/14.3.0 loaded.
+/home/kq336027/.local/lib/python3.11/site-packages/sklearn/gaussian_process/kernels.py:450: ConvergenceWarning: The optimal value found for dimension 0 of parameter k1__k1__constant_value is close to the specified upper bound 100.0. Increasing the bound and calling fit again may find a better value.
+  warnings.warn(

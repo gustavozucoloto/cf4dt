@@ -70,10 +70,9 @@ Execute the workflow steps manually:
        --data data/artificial_Qlc_data.csv \
        --out data/gp_powerlaw.joblib
 
-      # White-noise tuning (useful if a model is under/over-smoothing):
-      python scripts/build_gp_emulator.py --model logarithmic \
-         --data data/artificial_Qlc_data.csv --out data/gp_logarithmic.joblib \
-         --white-noise-level 1e-6 --white-noise-bounds 1e-10 1e-2
+      # Try a Matern(ν=2.5) kernel (often more flexible than RBF):
+      python scripts/build_gp_emulator.py --model logarithmic --kernel matern_2p5 \
+         --data data/artificial_Qlc_data.csv --out data/gp_logarithmic_matern25.joblib
    ```
    For exponential: `--model exponential --out data/gp_exponential.joblib`.
    Tune cost via `--n-theta` and `--subset`.
@@ -103,21 +102,21 @@ Execute the workflow steps manually:
    ```
 
 ### Running on HPC Cluster via SLURM
-Use the `run_workflow.sbatch` script to submit the entire workflow to the cluster:
+This repo ships a 2-stage, parallel SLURM workflow that keeps only **quick** and **medium** calibration cases:
+
+1) Train 6 GPs in parallel (powerlaw/exponential/logarithmic × RBF/Matern)
+2) After GP training succeeds, run calibration + UQ for quick + medium (12 tasks total)
+
+Submit from the login node:
 
 ```bash
-sbatch run_workflow.sbatch
+./submit_parallel_workflow.sh
 ```
 
-**How the sbatch script works:**
+**How the SLURM workflow works:**
 
-1. **SLURM Configuration** (`#SBATCH` directives):
-   - `--job-name=cryobot_dt`: Job identifier
-   - `--cpus-per-task=16`: Request 16 CPU cores (adjust as needed)
-   - `--mem=5GB`: Memory allocation
-   - `--time=12:00:00`: Maximum runtime (12 hours)
-   - `-A thes2143`: Charge to account `thes2143`
-   - `-p c23ms`: Partition/queue (adjust to your cluster)
+1. **Stage 1 (GP training)**: `run_batch_train_gps.sbatch` is submitted as a 6-task array (max 6 in flight).
+2. **Stage 2 (calibration + UQ)**: `run_batch_calib_uq.sbatch` is submitted as a 12-task array (quick + medium) with an `afterok` dependency on Stage 1.
 
 2. **Environment Setup**:
    - Loads GCC module (required for dolfinx)
@@ -197,9 +196,11 @@ or set it during workflow execution (see scripts for details).
    - Expected speedup: ~10-15x on 16 cores (minimal overhead)
 
 ### Cluster Integration
-In SLURM batch scripts, the workflow reads `$SLURM_CPUS_PER_TASK` and passes it to the `n_jobs` parameter programmatically. Edit `run_workflow.sbatch` to adjust parallelism:
+The SLURM scripts read `$SLURM_CPUS_PER_TASK` and pass it to `--n-jobs` for GP training and calibration.
+To adjust parallelism of *how many array tasks run at once*, set:
+
 ```bash
-#SBATCH --cpus-per-task=16
+TRAIN_PARALLELISM=6 CALIB_PARALLELISM=12 ./submit_parallel_workflow.sh
 ```
 
 ### Performance Notes
@@ -213,4 +214,5 @@ In SLURM batch scripts, the workflow reads `$SLURM_CPUS_PER_TASK` and passes it 
 - All models use alpha (thermal diffusivity) formulation: `dT/dt = (1/r) d/dr(alpha(T) * r * dT/dr)`.
 - Truth data uses `material_model='ulamec'` with alpha computed from k/(rho*cp); emulator/calibration use the parameterized toy models.
 - **Priors and GP training**: Tightened to explore regions near Ulamec fits (powerlaw: β₀∈[-14.5,-13.5], β₁∈[0.5,1.7]; exponential: β₀∈[-14.5,-13.5], β₁∈[0.002,0.010]).
-- **GP kernel**: Simplified to RBF + WhiteKernel for faster fitting and cleaner interpretability.
+- **GP kernel**: Supports `--kernel rbf` (default) and `--kernel matern_2p5` (Matern $\nu=2.5$) for the emulator.
+- **White noise**: Fixed across runs (shared for RBF/Matern) to keep comparisons apples-to-apples.
