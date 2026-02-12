@@ -17,15 +17,17 @@ def parse_args():
     p.add_argument("--data", default="artificial_Qlc_data.csv", help="CSV with observations")
     p.add_argument("--gp", default="gp_powerlaw.joblib", help="GP bundle path")
     p.add_argument("--out", default="posterior_powerlaw.npy", help="Output posterior .npy")
+    p.add_argument(
+        "--prior",
+        choices=["truncnorm", "gaussian"],
+        default="truncnorm",
+        help="Prior on (beta0,beta1). truncnorm keeps samples within the GP training box.",
+    )
     p.add_argument("--nwalkers", type=int, default=32)
     p.add_argument("--nsteps", type=int, default=6000)
     p.add_argument("--burn", type=int, default=1500)
     p.add_argument("--thin", type=int, default=10)
     p.add_argument("--seed", type=int, default=0)
-    p.add_argument("--beta0-min", type=float, default=None)
-    p.add_argument("--beta0-max", type=float, default=None)
-    p.add_argument("--beta1-min", type=float, default=None)
-    p.add_argument("--beta1-max", type=float, default=None)
     p.add_argument("--n-jobs", type=int, default=1, help="Number of parallel processes (1=serial)")
     return p.parse_args()
 
@@ -42,8 +44,9 @@ def main():
         burn=args.burn,
         thin=args.thin,
         seed=args.seed,
-        beta0_bounds=None if args.beta0_min is None else (args.beta0_min, args.beta0_max),
-        beta1_bounds=None if args.beta1_min is None else (args.beta1_min, args.beta1_max),
+        beta0_bounds=None,
+        beta1_bounds=None,
+        prior_kind=args.prior,
         n_jobs=args.n_jobs,
     )
 

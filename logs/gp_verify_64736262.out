@@ -1,0 +1,65 @@
+HOME_REAL:      /rwthfs/rz/cluster/home/kq336027
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+Job started on: r23m0002.hpc.itc.rwth-aachen.de
+Project dir:    /rwthfs/rz/cluster/home/kq336027/cf4dt
+CPUs per task:  16
+MAMBA_ROOT:     /rwthfs/rz/cluster/home/kq336027/.micromamba
+
+=== Sanity check: Python + MPI vendor ===
+Python OK
+MPI vendor: ('MPICH', (4, 3, 2))
+MPI library: MPICH Version:      4.3.2
+COMM_WORLD size: 1
+
+[powerlaw] Pre-compiling FEniCS forms to avoid race conditions...
+[powerlaw] Building training set with 16 parallel processes...
+  [powerlaw] Progress: 50/200
+  [powerlaw] Progress: 100/200
+  [powerlaw] Progress: 150/200
+  [powerlaw] Progress: 200/200
+[exponential] Pre-compiling FEniCS forms to avoid race conditions...
+[exponential] Building training set with 16 parallel processes...
+  [exponential] Progress: 50/200
+  [exponential] Progress: 100/200
+  [exponential] Progress: 150/200
+  [exponential] Progress: 200/200
+[logarithmic] Pre-compiling FEniCS forms to avoid race conditions...
+[logarithmic] Building training set with 16 parallel processes...
+  [logarithmic] Progress: 50/200
+  [logarithmic] Progress: 100/200
+  [logarithmic] Progress: 150/200
+  [logarithmic] Progress: 200/200
+======================================================================
+GP EMULATOR K-FOLD REPORT
+kfold=5, n_theta=10, subset=20, seed=1
+======================================================================
+
+MODEL: powerlaw
+  Fold 01: RMSE=0.0379 kW, MAE=0.0270 kW, R2=0.999995, 95%Cov=95.0%
+  Fold 02: RMSE=0.0473 kW, MAE=0.0286 kW, R2=0.999995, 95%Cov=80.0%
+  Fold 03: RMSE=0.0432 kW, MAE=0.0257 kW, R2=0.999979, 95%Cov=95.0%
+  Fold 04: RMSE=0.0441 kW, MAE=0.0263 kW, R2=0.999996, 95%Cov=85.0%
+  Fold 05: RMSE=0.0226 kW, MAE=0.0160 kW, R2=0.999998, 95%Cov=87.5%
+  Summary (mean +/- std):
+    RMSE=0.0390 +/- 0.0087 kW, MAE=0.0247 +/- 0.0044 kW, R2=0.999992 +/- 0.000007, 95%Cov=88.5% +/- 5.8%
+
+MODEL: exponential
+  Fold 01: RMSE=0.0268 kW, MAE=0.0173 kW, R2=0.999997, 95%Cov=85.0%
+  Fold 02: RMSE=0.0487 kW, MAE=0.0273 kW, R2=0.999994, 95%Cov=85.0%
+  Fold 03: RMSE=0.0245 kW, MAE=0.0147 kW, R2=0.999994, 95%Cov=100.0%
+  Fold 04: RMSE=0.0502 kW, MAE=0.0306 kW, R2=0.999994, 95%Cov=85.0%
+  Fold 05: RMSE=0.0159 kW, MAE=0.0126 kW, R2=0.999999, 95%Cov=92.5%
+  Summary (mean +/- std):
+    RMSE=0.0332 +/- 0.0137 kW, MAE=0.0205 +/- 0.0071 kW, R2=0.999996 +/- 0.000002, 95%Cov=89.5% +/- 6.0%
+
+MODEL: logarithmic
+  Fold 01: RMSE=0.9506 kW, MAE=0.5252 kW, R2=0.995254, 95%Cov=95.0%
+  Fold 02: RMSE=0.8289 kW, MAE=0.5910 kW, R2=0.997913, 95%Cov=85.0%
+  Fold 03: RMSE=0.6813 kW, MAE=0.4033 kW, R2=0.979258, 95%Cov=97.5%
+  Fold 04: RMSE=1.1189 kW, MAE=0.7680 kW, R2=0.996682, 95%Cov=87.5%
+  Fold 05: RMSE=0.5172 kW, MAE=0.3590 kW, R2=0.996288, 95%Cov=95.0%
+  Summary (mean +/- std):
+    RMSE=0.8194 +/- 0.2085 kW, MAE=0.5293 +/- 0.1454 kW, R2=0.993079 +/- 0.006963, 95%Cov=92.0% +/- 4.8%
+
+DONE
+Saved: outputs/04_gp_kfold_report.txt

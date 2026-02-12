@@ -68,10 +68,6 @@ srun --mpi=none -n 1 $MM python scripts/run_bayesian_calibration.py \
   --nwalkers 32 \
   --nsteps 6000 \
   --burn 1500 \
-  --beta0-min -14.8 \
-  --beta0-max -13.2 \
-  --beta1-min 0.1 \
-  --beta1-max 0.9 \
   --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
 
 echo "=== Step 4: UQ plots -> ${OUT_PREFIX}* ==="

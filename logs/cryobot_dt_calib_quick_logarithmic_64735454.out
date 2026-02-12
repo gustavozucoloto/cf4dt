@@ -1,0 +1,6 @@
+=== Quick calibration (logarithmic) -> data/posterior_logarithmic_quick.npy ===
+Saved posterior samples to data/posterior_logarithmic_quick.npy
+logarithmic posterior mean: [-13.10594269  -3.44087298] std: [1.1519769  0.42056043]
+num samples saved: 640
+=== Quick UQ plots -> outputs/uq_logarithmic_quick* ===
+Done.

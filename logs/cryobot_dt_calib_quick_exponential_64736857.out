@@ -1,0 +1,7 @@
+=== Quick calibration (exponential) -> data/posterior_exponential_quick.npy ===
+Saved posterior samples to data/posterior_exponential_quick.npy
+exponential posterior mean: [-1.29920199e+01 -1.15209951e-02] std: [1.02650355e-03 3.93961519e-05]
+num samples saved: 640
+fraction outside GP theta box: 0.0
+=== Quick UQ plots -> outputs/uq_exponential_quick* ===
+Done.

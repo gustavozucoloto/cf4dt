@@ -1,0 +1,14 @@
+=== Generating artificial data -> data/artificial_Qlc_data.csv ===
+Running 88 simulations with 16 parallel processes...
+  Progress: 30/88
+  Progress: 20/88
+  Progress: 10/88
+  Progress: 40/88
+  Progress: 50/88
+  Progress: 60/88
+  Progress: 80/88
+  Progress: 70/88
+
+Saved dataset with 88 points to: data/artificial_Qlc_data.csv
+Qlc_true_kW: min/median/max = 1.7727403286690246 14.43375911537117 42.789966537724595
+Done.

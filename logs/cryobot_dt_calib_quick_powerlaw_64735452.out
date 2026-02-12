@@ -1,0 +1,6 @@
+=== Quick calibration (powerlaw) -> data/posterior_powerlaw_quick.npy ===
+Saved posterior samples to data/posterior_powerlaw_quick.npy
+powerlaw posterior mean: [-13.05219775  -1.95752083] std: [0.00118025 0.00599076]
+num samples saved: 640
+=== Quick UQ plots -> outputs/uq_powerlaw_quick* ===
+Done.

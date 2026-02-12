@@ -4,30 +4,30 @@ kfold=5, n_theta=10, subset=20, seed=1
 ======================================================================
 
 MODEL: powerlaw
-  Fold 01: RMSE=0.0036 kW, MAE=0.0022 kW, R2=1.000000, 95%Cov=85.0%
-  Fold 02: RMSE=0.0033 kW, MAE=0.0023 kW, R2=1.000000, 95%Cov=90.0%
-  Fold 03: RMSE=0.0027 kW, MAE=0.0017 kW, R2=1.000000, 95%Cov=92.5%
-  Fold 04: RMSE=0.0071 kW, MAE=0.0038 kW, R2=0.999999, 95%Cov=70.0%
-  Fold 05: RMSE=0.0028 kW, MAE=0.0018 kW, R2=1.000000, 95%Cov=87.5%
+  Fold 01: RMSE=0.0379 kW, MAE=0.0270 kW, R2=0.999995, 95%Cov=95.0%
+  Fold 02: RMSE=0.0473 kW, MAE=0.0286 kW, R2=0.999995, 95%Cov=80.0%
+  Fold 03: RMSE=0.0432 kW, MAE=0.0257 kW, R2=0.999979, 95%Cov=95.0%
+  Fold 04: RMSE=0.0441 kW, MAE=0.0263 kW, R2=0.999996, 95%Cov=85.0%
+  Fold 05: RMSE=0.0226 kW, MAE=0.0160 kW, R2=0.999998, 95%Cov=87.5%
   Summary (mean +/- std):
-    RMSE=0.0039 +/- 0.0016 kW, MAE=0.0024 +/- 0.0008 kW, R2=1.000000 +/- 0.000000, 95%Cov=85.0% +/- 7.9%
+    RMSE=0.0390 +/- 0.0087 kW, MAE=0.0247 +/- 0.0044 kW, R2=0.999992 +/- 0.000007, 95%Cov=88.5% +/- 5.8%
 
 MODEL: exponential
-  Fold 01: RMSE=0.0050 kW, MAE=0.0033 kW, R2=0.999999, 95%Cov=82.5%
-  Fold 02: RMSE=0.0053 kW, MAE=0.0037 kW, R2=0.999999, 95%Cov=87.5%
-  Fold 03: RMSE=0.0050 kW, MAE=0.0028 kW, R2=0.999999, 95%Cov=87.5%
-  Fold 04: RMSE=0.0127 kW, MAE=0.0060 kW, R2=0.999997, 95%Cov=67.5%
-  Fold 05: RMSE=0.0050 kW, MAE=0.0030 kW, R2=0.999999, 95%Cov=85.0%
+  Fold 01: RMSE=0.0268 kW, MAE=0.0173 kW, R2=0.999997, 95%Cov=85.0%
+  Fold 02: RMSE=0.0487 kW, MAE=0.0273 kW, R2=0.999994, 95%Cov=85.0%
+  Fold 03: RMSE=0.0245 kW, MAE=0.0147 kW, R2=0.999994, 95%Cov=100.0%
+  Fold 04: RMSE=0.0502 kW, MAE=0.0306 kW, R2=0.999994, 95%Cov=85.0%
+  Fold 05: RMSE=0.0159 kW, MAE=0.0126 kW, R2=0.999999, 95%Cov=92.5%
   Summary (mean +/- std):
-    RMSE=0.0066 +/- 0.0030 kW, MAE=0.0038 +/- 0.0011 kW, R2=0.999999 +/- 0.000001, 95%Cov=82.0% +/- 7.5%
+    RMSE=0.0332 +/- 0.0137 kW, MAE=0.0205 +/- 0.0071 kW, R2=0.999996 +/- 0.000002, 95%Cov=89.5% +/- 6.0%
 
 MODEL: logarithmic
-  Fold 01: RMSE=0.0060 kW, MAE=0.0038 kW, R2=0.999999, 95%Cov=87.5%
-  Fold 02: RMSE=0.0030 kW, MAE=0.0022 kW, R2=1.000000, 95%Cov=87.5%
-  Fold 03: RMSE=0.0036 kW, MAE=0.0024 kW, R2=0.999999, 95%Cov=97.5%
-  Fold 04: RMSE=0.0059 kW, MAE=0.0038 kW, R2=0.999999, 95%Cov=77.5%
-  Fold 05: RMSE=0.0043 kW, MAE=0.0024 kW, R2=0.999999, 95%Cov=87.5%
+  Fold 01: RMSE=0.9506 kW, MAE=0.5252 kW, R2=0.995254, 95%Cov=95.0%
+  Fold 02: RMSE=0.8289 kW, MAE=0.5910 kW, R2=0.997913, 95%Cov=85.0%
+  Fold 03: RMSE=0.6813 kW, MAE=0.4033 kW, R2=0.979258, 95%Cov=97.5%
+  Fold 04: RMSE=1.1189 kW, MAE=0.7680 kW, R2=0.996682, 95%Cov=87.5%
+  Fold 05: RMSE=0.5172 kW, MAE=0.3590 kW, R2=0.996288, 95%Cov=95.0%
   Summary (mean +/- std):
-    RMSE=0.0046 +/- 0.0012 kW, MAE=0.0029 +/- 0.0007 kW, R2=0.999999 +/- 0.000000, 95%Cov=87.5% +/- 6.3%
+    RMSE=0.8194 +/- 0.2085 kW, MAE=0.5293 +/- 0.1454 kW, R2=0.993079 +/- 0.006963, 95%Cov=92.0% +/- 4.8%
 
 DONE

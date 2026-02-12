@@ -1,0 +1,19 @@
+=== Computing prior bounds (Ulamec fit) ===
+Prior bounds based on Ulamec alpha(T)
+T range: 80.00 to 260.00 K, n=200, T0=200.00
+Relative padding: 10.00%
+
+MODEL: powerlaw
+  fit beta0=-13.0461, beta1=-1.90311
+  bounds: beta0=(-14.3507, -11.7415), beta1=(-2.09343, -1.7128)
+
+MODEL: exponential
+  fit beta0=-12.9974, beta1=-0.011974
+  bounds: beta0=(-14.2971, -11.6977), beta1=(-0.0131714, -0.0107766)
+
+MODEL: logarithmic
+  fit beta0=-12.9822, beta1=-3.40888
+  bounds: beta0=(-14.2804, -11.684), beta1=(-3.74977, -3.06799)
+
+Saved plot: outputs/prior_bounds_fit.svg
+Done.

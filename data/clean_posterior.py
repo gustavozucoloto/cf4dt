@@ -3,8 +3,8 @@ s = np.load("data/posterior_powerlaw.npy")
 beta0, beta1 = s[:,0], s[:,1]
 
 mask = (
-    (beta0 >= -14.8) & (beta0 <= -13.2) &
-    (beta1 >= 0.1) & (beta1 <= 0.9)
+    (beta0 >= -14.3507) & (beta0 <= -11.7415) &
+    (beta1 >= -2.09343) & (beta1 <= -1.7128)
 )
 
 s2 = s[mask]

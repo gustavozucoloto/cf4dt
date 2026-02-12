@@ -46,20 +46,20 @@ def lhs(n, d, seed=0):
 def sample_theta(n_theta, model_name, seed=0):
     u = lhs(n_theta, 2, seed=seed)
     if model_name == "powerlaw":
-        # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
-        # β₁ ∈ [0.1, 0.9]: concave powerlaw (0 < beta1 < 1)
-        beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
-        beta1 = 0.1 + 0.8 * u[:, 1]     # β₁ ∈ [0.1, 0.9]
+        # β₀ ∈ [-14.3507, -11.7415]: Ulamec fit +/- 10%
+        # β₁ ∈ [-2.09343, -1.7128]: Ulamec fit +/- 10%
+        beta0 = -14.3507 + (2.6092) * u[:, 0]
+        beta1 = -2.09343 + (0.38063) * u[:, 1]
     elif model_name == "exponential":
-        # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
-        # β₁ ∈ [0.002, 0.010]: tight range around Ulamec fit (0.006)
-        beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
-        beta1 = 0.002 + 0.008 * u[:, 1]   # β₁ ∈ [0.002, 0.010]
+        # β₀ ∈ [-14.2971, -11.6977]: Ulamec fit +/- 10%
+        # β₁ ∈ [-0.0131714, -0.0107766]: Ulamec fit +/- 10%
+        beta0 = -14.2971 + (2.5994) * u[:, 0]
+        beta1 = -0.0131714 + (0.0023948) * u[:, 1]
     elif model_name == "logarithmic":
-        # β₀ ∈ [-14.5, -13.5]: tight range around Ulamec fit (-14.0)
-        # β₁ ∈ [0.1, 1.0]: positive slope with concave log shape
-        beta0 = -14.5 + 1.0 * u[:, 0]  # β₀ ∈ [-14.5, -13.5]
-        beta1 = 0.1 + 0.9 * u[:, 1]    # β₁ ∈ [0.1, 1.0]
+        # β₀ ∈ [-14.2804, -11.684]: Ulamec fit +/- 10%
+        # β₁ ∈ [-3.74977, -3.06799]: Ulamec fit +/- 10%
+        beta0 = -14.2804 + (2.5964) * u[:, 0]
+        beta1 = -3.74977 + (0.68178) * u[:, 1]
     else:
         raise ValueError(model_name)
     return np.column_stack([beta0, beta1])
@@ -127,17 +127,28 @@ def build_training_set(
     return X, y
 
 
-def fit_gp(X, y):
+def fit_gp(
+    X,
+    y,
+    white_noise_level=1e-5,
+    white_noise_bounds=(1e-8, 1e-1),
+):
     xscaler = StandardScaler()
     yscaler = StandardScaler()
 
     Xs = xscaler.fit_transform(X)
     ys = yscaler.fit_transform(y.reshape(-1, 1)).ravel()
 
+    wn_lo, wn_hi = white_noise_bounds
+    if not (np.isfinite(wn_lo) and np.isfinite(wn_hi) and wn_lo > 0 and wn_hi > wn_lo):
+        raise ValueError(f"Invalid white_noise_bounds={white_noise_bounds!r}")
+    if not (np.isfinite(white_noise_level) and white_noise_level > 0):
+        raise ValueError(f"Invalid white_noise_level={white_noise_level!r}")
+
     kernel = ConstantKernel(1.0, (1e-2, 1e2)) * RBF(
         length_scale=np.ones(X.shape[1]),
         length_scale_bounds=(1e-2, 1e2),
-    ) + WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-8, 1e-1))
+    ) + WhiteKernel(noise_level=float(white_noise_level), noise_level_bounds=(float(wn_lo), float(wn_hi)))
 
     gp = GaussianProcessRegressor(
         kernel=kernel,
@@ -158,6 +169,8 @@ def train_and_save_emulator(
     use_subset_points=64,
     solver_kwargs=None,
     n_jobs=1,  # Number of parallel processes (1=serial)
+    white_noise_level=1e-5,
+    white_noise_bounds=(1e-8, 1e-1),
 ):
     """
     Train GP emulator with optional parallel execution.
@@ -182,7 +195,12 @@ def train_and_save_emulator(
         n_jobs=n_jobs,
     )
 
-    gp, xscaler, yscaler = fit_gp(X, y)
+    gp, xscaler, yscaler = fit_gp(
+        X,
+        y,
+        white_noise_level=white_noise_level,
+        white_noise_bounds=white_noise_bounds,
+    )
 
     bundle = dict(gp=gp, xscaler=xscaler, yscaler=yscaler, model=model_name)
     joblib.dump(bundle, out_path)

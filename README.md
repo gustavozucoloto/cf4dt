@@ -69,16 +69,29 @@ Execute the workflow steps manually:
    python scripts/build_gp_emulator.py --model powerlaw \
        --data data/artificial_Qlc_data.csv \
        --out data/gp_powerlaw.joblib
+
+      # White-noise tuning (useful if a model is under/over-smoothing):
+      python scripts/build_gp_emulator.py --model logarithmic \
+         --data data/artificial_Qlc_data.csv --out data/gp_logarithmic.joblib \
+         --white-noise-level 1e-6 --white-noise-bounds 1e-10 1e-2
    ```
    For exponential: `--model exponential --out data/gp_exponential.joblib`.
    Tune cost via `--n-theta` and `--subset`.
 
 3. Run Bayesian calibration (emcee) using the GP:
    ```bash
-   python scripts/run_bayesian_calibration.py --model powerlaw \
+      python scripts/run_bayesian_calibration.py --model powerlaw \
        --data data/artificial_Qlc_data.csv \
        --gp data/gp_powerlaw.joblib \
        --out data/posterior_powerlaw.npy
+
+      # To keep MCMC samples inside the GP training box (recommended):
+      python scripts/run_bayesian_calibration.py --model powerlaw --prior truncnorm \
+         --data data/artificial_Qlc_data.csv --gp data/gp_powerlaw.joblib --out data/posterior_powerlaw.npy
+
+      # Legacy behavior (can query GP outside training box):
+      python scripts/run_bayesian_calibration.py --model powerlaw --prior gaussian \
+         --data data/artificial_Qlc_data.csv --gp data/gp_powerlaw.joblib --out data/posterior_powerlaw.npy
    ```
 
 4. Generate UQ plots:

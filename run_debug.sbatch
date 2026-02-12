@@ -90,16 +90,6 @@ for MODEL in powerlaw exponential logarithmic; do
   echo
 
   echo "=== Step 3: Bayesian calibration (emcee) -> ${POST_FILE} ==="
-  if [ "$MODEL" = "powerlaw" ]; then
-    BETA1_MIN=0.1
-    BETA1_MAX=0.9
-  elif [ "$MODEL" = "exponential" ]; then
-    BETA1_MIN=0.001
-    BETA1_MAX=0.012
-  else
-    BETA1_MIN=0.1
-    BETA1_MAX=1.0
-  fi
   srun --mpi=none -n 1 $MM python scripts/run_bayesian_calibration.py \
     --model "$MODEL" \
     --data "$TRUTH_DATA" \
@@ -109,10 +99,6 @@ for MODEL in powerlaw exponential logarithmic; do
     --nsteps 1500 \
     --burn 300 \
     --thin 5 \
-    --beta0-min -14.8 \
-    --beta0-max -13.2 \
-    --beta1-min "$BETA1_MIN" \
-    --beta1-max "$BETA1_MAX" \
     --n-jobs "${SLURM_CPUS_PER_TASK:-1}"
   echo
 
