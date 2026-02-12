@@ -9,8 +9,6 @@ from scipy.special import log_ndtr
 
 from .gp_utils import gp_predict
 
-
-# These bounds should match the GP emulator training ranges for (beta0, beta1).
 DEFAULT_BOUNDS = {
     "powerlaw": {
         "beta0": (-14.3507, -11.7415),
