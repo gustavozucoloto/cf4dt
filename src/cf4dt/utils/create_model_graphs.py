@@ -72,9 +72,11 @@ def _default_beta_sets() -> Dict[str, list[BetaPair]]:
 
 	# Exponential: beta0 in [-14.5, -13.5], beta1 in [0.002, 0.010]
 	exponential_betas: list[BetaPair] = [
-		(-14.3, 0.003),
-		(-14.0, 0.006),  # around prior mean
-		(-13.7, 0.009),
+		(-16.0759, -0.0354),
+		(-14.6568, -0.0265),
+		(-13.2377, -0.0176),
+		(-11.8186, -0.0087),
+		(-9.2378, 0.0),
 	]
 
 	return {"powerlaw": powerlaw_betas, "exponential": exponential_betas}
