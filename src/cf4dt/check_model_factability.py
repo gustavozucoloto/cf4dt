@@ -84,6 +84,9 @@ class SamplingConfig:
 	require_increasing : bool
 		If True, only accept parameters where alpha(T) is monotonically
 		increasing on the specified temperature grid.
+	require_decreasing : bool
+		If True, only accept parameters where alpha(T) is monotonically
+		decreasing on the specified temperature grid.
 	random_state : int or None
 		Random seed for reproducibility.
 	"""
@@ -97,6 +100,7 @@ class SamplingConfig:
 	n_samples: int = 2000
 	sampler: str = "lhs"  # "lhs", "uniform", or "walk"
 	require_increasing: bool = False
+	require_decreasing: bool = False
 	random_state: int | None = None
 
 
@@ -198,8 +202,7 @@ def sample_parameter_space(config: SamplingConfig) -> Dict[str, np.ndarray]:
 	alpha_min, alpha_max = config.alpha_range
 	T_min, T_max = config.T_range
 	require_inc = config.require_increasing
-	tol = 0.0
-	require_inc = config.require_increasing
+	require_dec = config.require_decreasing
 	tol = 0.0  # can be relaxed if numerical noise appears
 
 	for i, (b0, b1) in enumerate(betas):
@@ -213,9 +216,12 @@ def sample_parameter_space(config: SamplingConfig) -> Dict[str, np.ndarray]:
 			T_max=T_max,
 			n_T=config.n_T,
 		)
-		if ok and require_inc:
-			# Enforce non-decreasing alpha(T); adjust tol if needed.
-			ok = np.all(np.diff(alpha_vals) >= -tol)
+		if ok and (require_inc or require_dec):
+			diffs = np.diff(alpha_vals)
+			if require_inc:
+				ok = ok and np.all(diffs >= -tol)
+			if require_dec:
+				ok = ok and np.all(diffs <= tol)
 		feasible_mask[i] = ok
 
 	return {"betas": betas, "feasible": feasible_mask}
@@ -286,6 +292,7 @@ def adaptive_random_walk(config: SamplingConfig) -> Dict[str, np.ndarray]:
 	alpha_min, alpha_max = config.alpha_range
 	T_min, T_max = config.T_range
 	require_inc = config.require_increasing
+	require_dec = config.require_decreasing
 	tol = 0.0
 
 	current: np.ndarray | None = None
@@ -335,8 +342,12 @@ def adaptive_random_walk(config: SamplingConfig) -> Dict[str, np.ndarray]:
 			T_max=T_max,
 			n_T=config.n_T,
 		)
-		if is_ok and require_inc:
-			is_ok = np.all(np.diff(alpha_vals) >= -tol)
+		if is_ok and (require_inc or require_dec):
+			diffs = np.diff(alpha_vals)
+			if require_inc:
+				is_ok = is_ok and np.all(diffs >= -tol)
+			if require_dec:
+				is_ok = is_ok and np.all(diffs <= tol)
 
 		betas[i, 0] = b0
 		betas[i, 1] = b1
@@ -409,6 +420,14 @@ def _parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
 		),
 	)
 	parser.add_argument(
+		"--require-decreasing",
+		action="store_true",
+		help=(
+			"If set, only accept parameters where alpha(T) is monotonically "
+			"decreasing over the chosen temperature range."
+		),
+	)
+	parser.add_argument(
 		"--plot",
 		action="store_true",
 		help=(
@@ -424,6 +443,10 @@ def main(argv: Iterable[str] | None = None) -> None:
 	"""CLI entry point to run a quick parameter-space factability check."""
 
 	args = _parse_args(argv)
+
+	if args.require_increasing and args.require_decreasing:
+		print("ERROR: --require-increasing and --require-decreasing cannot both be set.")
+		return
 
 	beta0_range_default, beta1_range_default = _default_beta_ranges(args.model)
 	beta0_range = (
@@ -445,6 +468,7 @@ def main(argv: Iterable[str] | None = None) -> None:
 		n_samples=args.n_samples,
 		sampler=args.sampler,
 		require_increasing=args.require_increasing,
+		require_decreasing=args.require_decreasing,
 		random_state=args.seed,
 	)
 
@@ -458,6 +482,7 @@ def main(argv: Iterable[str] | None = None) -> None:
 	print(f"  n_samples   : {config.n_samples}")
 	print(f"  sampler     : {config.sampler}")
 	print(f"  increasing  : {config.require_increasing}")
+	print(f"  decreasing  : {config.require_decreasing}")
 
 	result = sample_parameter_space(config)
 	betas = result["betas"]
